@@ -1,28 +1,32 @@
 {
-  "id": "mechanisms-and-riddles",
+  "id": "mechanisms-and-puzzles",
   "title": "Механизмы и загадки",
-  "description": "Системно-независимые интерактивные загадки для Foundry VTT.",
-  "version": "0.3.0",
+  "description": "Интерактивные головоломки для Foundry VTT.",
+  "version": "0.1.0",
   "compatibility": {
     "minimum": "13",
-    "verified": "13"
+    "verified": "13",
+    "maximum": "13"
   },
   "authors": [
     {
-      "name": "Module Author"
+      "name": "Автор модуля"
     }
   ],
   "esmodules": [
     "scripts/main.js"
   ],
-  "relationships": {
-    "requires": [
-      {
-        "id": "socketlib",
-        "type": "module",
-        "compatibility": {
-          "minimum": "1.1.0"
-        }
+  "styles": [
+    "styles/puzzles.css"
+  ],
+  "languages": [
+    {
+      "lang": "ru",
+      "name": "Русский",
+      "path": "lang/ru.json"
+    }
+  ]
+}
       }
     ]
   }
