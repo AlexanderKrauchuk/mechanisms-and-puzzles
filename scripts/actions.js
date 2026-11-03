@@ -1,14 +1,15 @@
 const MODULE_ID = "mechanisms-and-riddles";
 
-/**
- * Выполняет список настроенных действий на клиенте мастера.
- *
- * Форматы:
- * { type: "chat", content: "Текст для чата" }
- * { type: "tile", uuid: "Scene.<sceneId>.Tile.<tileId>", visible: false }
- * { type: "sound", src: "sounds/puzzle-solved.ogg", volume: 0.8 }
- * { type: "macro", uuid: "Macro.<macroId>" }
- */
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[character]);
+}
+
 export class PuzzleActions {
   static async run(actions, context = {}) {
     if (!game.user?.isGM) {
@@ -23,15 +24,13 @@ export class PuzzleActions {
 
     for (const action of actions) {
       try {
-        results.push({
-          action,
-          ok: true,
-          result: await this.#runOne(action, context)
-        });
+        await this.#runOne(action, context);
+        results.push({ type: action.type, ok: true });
       } catch (error) {
-        console.error(`${MODULE_ID} | Ошибка действия:`, action, error);
+        console.error(`${MODULE_ID} | Ошибка действия`, action, error);
+
         results.push({
-          action,
+          type: action?.type ?? "unknown",
           ok: false,
           error: error.message ?? String(error)
         });
@@ -43,7 +42,7 @@ export class PuzzleActions {
 
   static async #runOne(action, context) {
     if (!action || typeof action !== "object") {
-      throw new Error("Некорректное описание действия.");
+      throw new Error("Некорректное действие.");
     }
 
     switch (action.type) {
@@ -52,6 +51,9 @@ export class PuzzleActions {
 
       case "tile":
         return this.#tile(action);
+
+      case "door":
+        return this.#door(action);
 
       case "sound":
         return this.#sound(action);
@@ -65,44 +67,90 @@ export class PuzzleActions {
   }
 
   static async #chat(action, context) {
-    const content = this.#renderText(action.content, context);
-    if (!content.trim()) throw new Error("Сообщение для чата пустое.");
+    if (typeof action.content !== "string") {
+      throw new Error("Текст сообщения должен быть строкой.");
+    }
+
+    const text = action.content
+      .replaceAll("{puzzleName}", String(context.puzzleName ?? ""))
+      .replaceAll("{outcome}", String(context.outcome ?? ""));
+
+    if (!text.trim()) {
+      throw new Error("Сообщение пустое.");
+    }
 
     return ChatMessage.create({
-      content: foundry.utils.escapeHTML(content),
+      content: `<p>${escapeHTML(text).replace(/\r?\n/g, "<br>")}</p>`,
       speaker: ChatMessage.getSpeaker()
     });
   }
 
-  static async #tile(action) {
-    if (typeof action.uuid !== "string") {
-      throw new Error("Для действия с плиткой требуется UUID.");
-    }
-    if (typeof action.visible !== "boolean") {
-      throw new Error("Для плитки укажите visible: true или false.");
+  static async #resolve(uuid, documentName) {
+    if (typeof uuid !== "string" || !uuid.trim()) {
+      throw new Error("Не указан UUID документа.");
     }
 
-    const document = await fromUuid(action.uuid);
-    if (!(document instanceof TileDocument)) {
-      throw new Error("Указанный UUID не относится к плитке.");
+    const document = await fromUuid(uuid);
+
+    if (!document || document.documentName !== documentName) {
+      throw new Error(`UUID должен указывать на документ ${documentName}.`);
     }
 
-    await document.update({ hidden: !action.visible });
-    return { uuid: document.uuid, visible: action.visible };
+    return document;
   }
 
-  static #sound(action) {
-    if (typeof action.src !== "string" || !action.src.trim()) {
-      throw new Error("Для звука требуется путь к аудиофайлу.");
+  static async #tile(action) {
+    if (typeof action.visible !== "boolean") {
+      throw new Error("Укажите visible: true или false.");
     }
 
-    const volume = Number(action.volume ?? 0.8);
-    if (!Number.isFinite(volume) || volume < 0 || volume > 1) {
+    const tile = await this.#resolve(action.uuid, "Tile");
+    await tile.update({ hidden: !action.visible });
+  }
+
+  static async #door(action) {
+    const wall = await this.#resolve(action.uuid, "Wall");
+
+    if (wall.door === CONST.WALL_DOOR_TYPES.NONE) {
+      throw new Error("Указанная стена не является дверью.");
+    }
+
+    if (typeof action.open !== "boolean") {
+      throw new Error("Укажите open: true или false.");
+    }
+
+    // Прямое изменение мастером, а не имитация щелчка игрока.
+    // Открытие таким способом также снимает состояние LOCKED.
+    const state = action.open
+      ? CONST.WALL_DOOR_STATES.OPEN
+      : CONST.WALL_DOOR_STATES.CLOSED;
+
+    await wall.update({ ds: state });
+  }
+
+  static async #sound(action) {
+    if (typeof action.src !== "string" || !action.src.trim()) {
+      throw new Error("Не указан путь к звуку.");
+    }
+
+    const volume = action.volume ?? 0.8;
+
+    if (
+      typeof volume !== "number"
+      || !Number.isFinite(volume)
+      || volume < 0
+      || volume > 1
+    ) {
       throw new Error("Громкость должна быть числом от 0 до 1.");
     }
 
-    // broadcast=true передаёт звук другим клиентам через штатный API Foundry.
-    AudioHelper.play(
+    const helper = foundry.audio?.AudioHelper;
+
+    if (typeof helper?.play !== "function") {
+      throw new Error("API воспроизведения звука недоступно.");
+    }
+
+    await helper.play(
       {
         src: action.src,
         volume,
@@ -111,41 +159,31 @@ export class PuzzleActions {
       },
       true
     );
-
-    return { src: action.src };
   }
 
   static async #macro(action, context) {
-    const enabled = game.settings.get(MODULE_ID, "allowMacroActions");
-    if (!enabled) {
-      throw new Error(
-        "Вызов макросов отключён. Включите его в настройках модуля, только если доверяете настроенным макросам."
-      );
+    if (!game.settings.get(MODULE_ID, "allowMacroActions")) {
+      throw new Error("Выполнение макросов отключено в настройках.");
     }
 
-    if (typeof action.uuid !== "string") {
-      throw new Error("Для вызова макроса требуется UUID.");
+    const macro = await this.#resolve(action.uuid, "Macro");
+
+    // Не запускаем напрямую макросы из компендиумов.
+    if (macro.pack) {
+      throw new Error("Сначала импортируйте макрос в мир.");
     }
 
-    const macro = await fromUuid(action.uuid);
-    if (!(macro instanceof Macro)) {
-      throw new Error("Указанный UUID не относится к макросу.");
+    if (macro.type !== "script") {
+      throw new Error("Для этого действия требуется скриптовый макрос.");
     }
 
-    // Макросы могут выполнять произвольный код. UUID макроса должен
-    // быть задан и проверен мастером; данные игрока в аргументы не передаём.
     return macro.execute({
-      puzzleId: context.puzzleId ?? null,
-      puzzleName: context.puzzleName ?? null,
-      outcome: context.outcome ?? null
+      puzzleId: String(context.puzzleId ?? ""),
+      puzzleName: String(context.puzzleName ?? ""),
+      outcome: String(context.outcome ?? "")
     });
   }
-
-  static #renderText(template, context) {
-    if (typeof template !== "string") return "";
-
-    // Не интерполируем произвольные значения или HTML из данных игрока.
-    return template
+}
       .replaceAll("{puzzleName}", String(context.puzzleName ?? ""))
       .replaceAll("{outcome}", String(context.outcome ?? ""));
   }
