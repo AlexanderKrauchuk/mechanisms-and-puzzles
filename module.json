@@ -1,16 +1,15 @@
 {
   "id": "mechanisms-and-puzzles",
   "title": "Механизмы и загадки",
-  "description": "Интерактивные головоломки для Foundry VTT.",
+  "description": "Интерактивные головоломки для Foundry VTT. Версия 0.1.0: каркас модуля и окно управления мастера.",
   "version": "0.1.0",
   "compatibility": {
     "minimum": "13",
-    "verified": "13",
     "maximum": "13"
   },
   "authors": [
     {
-      "name": "Автор модуля"
+      "name": "AlexanderKrauchuk"
     }
   ],
   "esmodules": [
@@ -25,9 +24,9 @@
       "name": "Русский",
       "path": "lang/ru.json"
     }
-  ]
-}
-      }
-    ]
-  }
+  ],
+  "url": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzle",
+  "manifest": "https://raw.githubusercontent.com/AlexanderKrauchuk/mechanisms-and-puzzle/main/module.json",
+  "download": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzle/releases/download/v0.1.0/mechanisms-and-puzzles.zip",
+  "bugs": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzle/issues"
 }
