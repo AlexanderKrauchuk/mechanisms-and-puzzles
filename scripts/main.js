@@ -34,7 +34,7 @@ class PuzzleManager extends HandlebarsApplicationMixin(ApplicationV2) {
   static PARTS = {
     main: {
       template:
-        "modules/mechanisms-and-puzzles/templates/gm-manager.hbs"
+  "modules/mechanisms-and-puzzles/templates/gm-manager.hbs"
     }
   };
 
