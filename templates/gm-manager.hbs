@@ -1,1 +1,46 @@
+<div class="map-manager-content">
+  <header class="map-heading">
+    <h2>{{localize "MAP.Manager.Title"}}</h2>
+    <p>{{localize "MAP.Manager.Intro"}}</p>
+  </header>
 
+  <section class="map-panel">
+    <h3>{{localize "MAP.Manager.Environment"}}</h3>
+
+    <dl class="map-diagnostics">
+      <dt>{{localize "MAP.Manager.ModuleVersion"}}</dt>
+      <dd>{{moduleVersion}}</dd>
+
+      <dt>{{localize "MAP.Manager.FoundryVersion"}}</dt>
+      <dd>{{foundryVersion}}</dd>
+
+      <dt>{{localize "MAP.Manager.System"}}</dt>
+      <dd>{{systemTitle}}</dd>
+
+      <dt>{{localize "MAP.Manager.Scene"}}</dt>
+      <dd>{{sceneName}}</dd>
+
+      <dt>{{localize "MAP.Manager.ActiveGMs"}}</dt>
+      <dd>{{activeGMNames}}</dd>
+    </dl>
+  </section>
+
+  <section class="map-panel">
+    <h3>{{localize "MAP.Manager.Puzzles"}}</h3>
+
+    <p>{{localize "MAP.Manager.StageNotice"}}</p>
+
+    <ul class="map-type-list">
+      <li>{{localize "MAP.Types.Sliding"}}</li>
+      <li>{{localize "MAP.Types.Rings"}}</li>
+      <li>{{localize "MAP.Types.Sequence"}}</li>
+    </ul>
+  </section>
+
+  <footer class="map-footer">
+    <button type="button" data-action="refresh">
+      <i class="fas fa-arrows-rotate" aria-hidden="true"></i>
+      {{localize "MAP.Buttons.Refresh"}}
+    </button>
+  </footer>
+</div>
