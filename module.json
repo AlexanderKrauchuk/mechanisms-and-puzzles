@@ -25,8 +25,9 @@
       "path": "lang/ru.json"
     }
   ],
-  "url": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzle",
-  "manifest": "https://raw.githubusercontent.com/AlexanderKrauchuk/mechanisms-and-puzzle/main/module.json",
-  "download": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzle/releases/download/v0.1.0/mechanisms-and-puzzles.zip",
-  "bugs": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzle/issues"
+  "url": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzles",
+  "manifest": "https://raw.githubusercontent.com/AlexanderKrauchuk/mechanisms-and-puzzles/main/module.json",
+  "download": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzles/releases/download/v0.1.0/mechanisms-and-puzzles.zip",
+  "bugs": "https://github.com/AlexanderKrauchuk/mechanisms-and-puzzles/issues",
+  "readme": "https://raw.githubusercontent.com/AlexanderKrauchuk/mechanisms-and-puzzles/main/readme.md"
 }
