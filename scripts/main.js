@@ -1,50 +1,119 @@
-import { PuzzleManager } from "./manager.js";
-import { PuzzleStorage } from "./storage.js";
-import { PuzzleEngine } from "./puzzles/engine.js";
-import { PuzzleActions } from "./actions.js";
+const MODULE_ID = "mechanisms-and-puzzles";
 
-const MODULE_ID = "mechanisms-and-riddles";
-const VERSION = "0.4.1";
+const {
+  ApplicationV2,
+  HandlebarsApplicationMixin
+} = foundry.applications.api;
+
+/**
+ * Этап 1: окно управления и диагностика.
+ * Конфигурация и ответы загадок пока не хранятся.
+ */
+class PuzzleManager extends HandlebarsApplicationMixin(ApplicationV2) {
+  static DEFAULT_OPTIONS = {
+    id: "mechanisms-and-puzzles-manager",
+    tag: "section",
+    classes: ["map-puzzles", "map-puzzles-manager"],
+
+    window: {
+      title: "MAP.Manager.Title",
+      icon: "fas fa-puzzle-piece",
+      resizable: true
+    },
+
+    position: {
+      width: 680,
+      height: 520
+    },
+
+    actions: {
+      refresh: PuzzleManager.onRefresh
+    }
+  };
+
+  static PARTS = {
+    main: {
+      template:
+        "modules/mechanisms-and-puzzles/templates/gm-manager.hbs"
+    }
+  };
+
+  /**
+   * Проверка выполняется и при каждом рендере:
+   * скрытие кнопки само по себе не является контролем доступа.
+   */
+  async _prepareContext(options) {
+    if (!game.user?.isGM) {
+      throw new Error(
+        game.i18n.localize("MAP.Errors.GMOnly")
+      );
+    }
+
+    const context = await super._prepareContext(options);
+
+    return {
+      ...context,
+
+      moduleVersion:
+        game.modules.get(MODULE_ID)?.version ?? "—",
+
+      foundryVersion: game.version,
+      systemTitle: game.system?.title ?? "—",
+      sceneName:
+        canvas.scene?.name ??
+        game.i18n.localize("MAP.Manager.NoScene"),
+
+      activeGMNames: game.users.contents
+        .filter(user => user.active && user.isGM)
+        .map(user => user.name)
+        .join(", ")
+    };
+  }
+
+  static onRefresh() {
+    this.render({ force: true });
+  }
+}
+
+let manager;
+
+/**
+ * Публичная точка открытия окна.
+ * Она не предоставляет игрокам привилегий мастера.
+ */
+function openManager() {
+  if (!game.user?.isGM) {
+    ui.notifications.warn(
+      game.i18n.localize("MAP.Errors.GMOnly")
+    );
+    return;
+  }
+
+  manager ??= new PuzzleManager();
+  manager.render({ force: true });
+}
 
 Hooks.once("init", () => {
-  game.settings.register(MODULE_ID, "allowMacroActions", {
-    name: "Разрешить выполнение макросов",
-    hint:
-      "Опасная возможность: настроенные мастером скриптовые макросы "
-      + "выполняются с его полномочиями. Включайте только для проверенных макросов.",
-    scope: "world",
-    config: true,
-    type: Boolean,
-    default: false
+  game.settings.registerMenu(MODULE_ID, "manager", {
+    name: "MAP.Settings.ManagerName",
+    label: "MAP.Settings.ManagerLabel",
+    hint: "MAP.Settings.ManagerHint",
+    icon: "fas fa-puzzle-piece",
+    type: PuzzleManager,
+    restricted: true
   });
 
-  console.info(`${MODULE_ID} | Инициализация ${VERSION}`);
+  const module = game.modules.get(MODULE_ID);
+
+  module.api = Object.freeze({
+    openManager
+  });
+
+  console.info(`${MODULE_ID} | Инициализация завершена.`);
 });
 
 Hooks.once("ready", () => {
-  const module = game.modules.get(MODULE_ID);
-  if (!module) return;
-
-  const api = {
-    version: VERSION,
-    ready: true,
-    openManager: () => PuzzleManager.open()
-  };
-
-  // Это сокращает публичную поверхность API, но само по себе
-  // не является защитой от изменённого клиентского кода.
-  if (game.user.isGM) {
-    Object.assign(api, {
-      PuzzleManager,
-      PuzzleStorage,
-      PuzzleEngine,
-      PuzzleActions
-    });
-  }
-
-  module.api = Object.freeze(api);
-
   console.info(
-    `${MODULE_ID} | Готов. Интерактивная сетевая игра ещё не подключена.`
+    `${MODULE_ID} | Готово. Foundry ${game.version}; система ${game.system.id}.`
   );
 });
