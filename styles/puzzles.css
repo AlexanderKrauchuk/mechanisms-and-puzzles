@@ -1,1 +1,69 @@
+.map-puzzles {
+  --map-gap: 1rem;
+}
 
+.map-puzzles .window-content {
+  overflow: auto;
+}
+
+.map-puzzles .map-manager-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--map-gap);
+  padding: 1rem;
+}
+
+.map-puzzles .map-heading h2 {
+  margin: 0 0 0.5rem;
+}
+
+.map-puzzles .map-heading p,
+.map-puzzles .map-panel p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.map-puzzles .map-panel {
+  padding: 1rem;
+  border: 1px solid var(--color-border-light-primary, #888);
+  border-radius: 6px;
+}
+
+.map-puzzles .map-panel h3 {
+  margin: 0 0 0.75rem;
+}
+
+.map-puzzles .map-diagnostics {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(0, 2fr);
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.map-puzzles .map-diagnostics dt {
+  font-weight: bold;
+}
+
+.map-puzzles .map-diagnostics dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.map-puzzles .map-type-list {
+  margin: 0.75rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.map-puzzles .map-type-list li + li {
+  margin-top: 0.35rem;
+}
+
+.map-puzzles .map-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.map-puzzles .map-footer button {
+  width: auto;
+  min-width: 140px;
+}
