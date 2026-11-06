@@ -68,12 +68,32 @@ function assertPrivate(document) {
   const ownership = document.ownership ?? {};
   const none = CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
 
-  if (
-    Object.entries(ownership).some(
-      ([, level]) => Number(level) > none
-    )
-  ) {
-    throw new Error(game.i18n.localize("MAP.Errors.StorageNotPrivate"));
+  // Общий доступ запрещён: иначе документ доступен игрокам.
+  const defaultLevel = Number(ownership.default ?? none);
+
+  if (defaultLevel !== none) {
+    throw new Error(
+      game.i18n.localize("MAP.Errors.StorageNotPrivate")
+    );
+  }
+
+  for (const [userId, rawLevel] of Object.entries(ownership)) {
+    if (userId === "default") continue;
+
+    const level = Number(rawLevel);
+
+    // Явное отсутствие доступа безопасно.
+    if (level === none) continue;
+
+    const user = game.users.get(userId);
+
+    // Индивидуальные права разрешены только существующим GM.
+    // Неизвестные записи также требуют проверки мастером.
+    if (!Number.isFinite(level) || !user?.isGM) {
+      throw new Error(
+        game.i18n.localize("MAP.Errors.StorageNotPrivate")
+      );
+    }
   }
 }
 
