@@ -1,0 +1,126 @@
+<div class="map-editor-content">
+  <p class="map-notice">
+    {{localize "MAP.Editor.MechanicsNotice"}}
+  </p>
+
+  <label class="map-field">
+    <span>{{localize "MAP.Editor.Name"}}</span>
+    <input
+      type="text"
+      name="name"
+      value="{{name}}"
+      maxlength="120"
+      required
+    >
+  </label>
+
+  <label class="map-field">
+    <span>{{localize "MAP.Editor.Type"}}</span>
+    <select name="type">
+      {{#each typeOptions}}
+        <option value="{{value}}" {{#if selected}}selected{{/if}}>
+          {{label}}
+        </option>
+      {{/each}}
+    </select>
+  </label>
+
+  <label class="map-field">
+    <span>{{localize "MAP.Editor.Description"}}</span>
+    <textarea name="description" rows="4" maxlength="10000">{{description}}</textarea>
+  </label>
+
+  <label class="map-field">
+    <span>{{localize "MAP.Editor.Hints"}}</span>
+    <textarea name="hints" rows="3">{{hintsText}}</textarea>
+    <small>{{localize "MAP.Editor.HintsHelp"}}</small>
+  </label>
+
+  <fieldset class="map-panel">
+    <legend>{{localize "MAP.Types.Sliding"}}</legend>
+
+    <label class="map-field">
+      <span>{{localize "MAP.Editor.SlidingSize"}}</span>
+      <input
+        type="number"
+        name="slidingSize"
+        min="3"
+        max="6"
+        step="1"
+        value="{{slidingSize}}"
+      >
+    </label>
+
+    <p class="map-help">{{localize "MAP.Editor.SlidingHelp"}}</p>
+  </fieldset>
+
+  <fieldset class="map-panel">
+    <legend>{{localize "MAP.Types.Rings"}}</legend>
+
+    <label class="map-field">
+      <span>{{localize "MAP.Editor.RingCount"}}</span>
+      <input
+        type="number"
+        name="ringCount"
+        min="1"
+        max="12"
+        step="1"
+        value="{{ringCount}}"
+      >
+    </label>
+
+    <label class="map-field">
+      <span>{{localize "MAP.Editor.RingSectors"}}</span>
+      <input
+        type="number"
+        name="ringSectors"
+        min="2"
+        max="24"
+        step="1"
+        value="{{ringSectors}}"
+      >
+    </label>
+
+    <label class="map-field">
+      <span>{{localize "MAP.Editor.RingTargets"}}</span>
+      <input type="text" name="ringTargets" value="{{ringTargets}}">
+      <small>{{localize "MAP.Editor.RingTargetsHelp"}}</small>
+    </label>
+  </fieldset>
+
+  <fieldset class="map-panel">
+    <legend>{{localize "MAP.Types.Sequence"}}</legend>
+
+    <label class="map-field">
+      <span>{{localize "MAP.Editor.Symbols"}}</span>
+      <textarea name="symbols" rows="4">{{symbolsText}}</textarea>
+      <small>{{localize "MAP.Editor.SymbolsHelp"}}</small>
+    </label>
+
+    <label class="map-field">
+      <span>{{localize "MAP.Editor.Solution"}}</span>
+      <input type="text" name="solution" value="{{solutionText}}">
+      <small>{{localize "MAP.Editor.SolutionHelp"}}</small>
+    </label>
+
+    <label class="map-field">
+      <span>{{localize "MAP.Editor.ErrorBehavior"}}</span>
+      <select name="errorBehavior">
+        {{#each behaviorOptions}}
+          <option value="{{value}}" {{#if selected}}selected{{/if}}>
+            {{label}}
+          </option>
+        {{/each}}
+      </select>
+    </label>
+  </fieldset>
+
+  <p class="map-help">{{localize "MAP.Editor.InteractionNotice"}}</p>
+
+  <footer class="map-footer">
+    <button type="submit">
+      <i class="fas fa-save" aria-hidden="true"></i>
+      {{localize "MAP.Buttons.Save"}}
+    </button>
+  </footer>
+</div>
