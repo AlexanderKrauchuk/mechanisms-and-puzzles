@@ -6,7 +6,8 @@
   overflow: auto;
 }
 
-.map-puzzles .map-manager-content {
+.map-puzzles .map-manager-content,
+.map-puzzles .map-editor-content {
   display: flex;
   flex-direction: column;
   gap: var(--map-gap);
@@ -17,13 +18,17 @@
   margin: 0 0 0.5rem;
 }
 
-.map-puzzles .map-heading p,
-.map-puzzles .map-panel p {
-  margin: 0;
+.map-puzzles p {
   line-height: 1.5;
 }
 
+.map-puzzles .map-heading p,
+.map-puzzles .map-panel p {
+  margin: 0;
+}
+
 .map-puzzles .map-panel {
+  min-width: 0;
   padding: 1rem;
   border: 1px solid var(--color-border-light-primary, #888);
   border-radius: 6px;
@@ -31,6 +36,11 @@
 
 .map-puzzles .map-panel h3 {
   margin: 0 0 0.75rem;
+}
+
+.map-puzzles .map-panel legend {
+  padding: 0 0.4rem;
+  font-weight: bold;
 }
 
 .map-puzzles .map-diagnostics {
@@ -49,13 +59,86 @@
   overflow-wrap: anywhere;
 }
 
-.map-puzzles .map-type-list {
-  margin: 0.75rem 0 0;
-  padding-left: 1.5rem;
+.map-puzzles .map-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.map-puzzles .map-type-list li + li {
-  margin-top: 0.35rem;
+.map-puzzles .map-section-heading h3 {
+  margin: 0;
+}
+
+.map-puzzles .map-section-heading button,
+.map-puzzles .map-card-actions button,
+.map-puzzles .map-footer button {
+  width: auto;
+}
+
+.map-puzzles .map-puzzle-card {
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border-light-primary, #888);
+}
+
+.map-puzzles .map-puzzle-card h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1em;
+}
+
+.map-puzzles .map-puzzle-card .map-description {
+  margin-top: 0.75rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.map-puzzles .map-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.map-puzzles .map-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.map-puzzles .map-field > span {
+  font-weight: bold;
+}
+
+.map-puzzles .map-field input,
+.map-puzzles .map-field select,
+.map-puzzles .map-field textarea {
+  width: 100%;
+}
+
+.map-puzzles .map-field textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.map-puzzles .map-field small,
+.map-puzzles .map-help {
+  opacity: 0.85;
+  font-size: 0.9em;
+}
+
+.map-puzzles .map-notice,
+.map-puzzles .map-error {
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-light-primary, #888);
+  border-left-width: 4px;
+  border-radius: 4px;
+  margin: 0;
+}
+
+.map-puzzles .map-error {
+  border-color: #b33;
 }
 
 .map-puzzles .map-footer {
@@ -64,6 +147,5 @@
 }
 
 .map-puzzles .map-footer button {
-  width: auto;
   min-width: 140px;
 }
