@@ -25,16 +25,61 @@
     </dl>
   </section>
 
+  <p class="map-notice">{{localize "MAP.Manager.SecurityNotice"}}</p>
+
+  {{#if storageError}}
+    <p class="map-error">{{storageError}}</p>
+  {{/if}}
+
   <section class="map-panel">
-    <h3>{{localize "MAP.Manager.Puzzles"}}</h3>
+    <div class="map-section-heading">
+      <h3>{{localize "MAP.Manager.Puzzles"}}</h3>
 
-    <p>{{localize "MAP.Manager.StageNotice"}}</p>
+      <button type="button" data-action="create">
+        <i class="fas fa-plus" aria-hidden="true"></i>
+        {{localize "MAP.Buttons.Create"}}
+      </button>
+    </div>
 
-    <ul class="map-type-list">
-      <li>{{localize "MAP.Types.Sliding"}}</li>
-      <li>{{localize "MAP.Types.Rings"}}</li>
-      <li>{{localize "MAP.Types.Sequence"}}</li>
-    </ul>
+    {{#each puzzles}}
+      <article class="map-puzzle-card">
+        <h4>{{name}}</h4>
+
+        <p class="map-help">{{typeLabel}} · {{statusLabel}}</p>
+
+        {{#if description}}
+          <p class="map-description">{{description}}</p>
+        {{/if}}
+
+        <div class="map-card-actions">
+          <button
+            type="button"
+            data-action="edit"
+            data-puzzle-id="{{id}}"
+          >
+            {{localize "MAP.Buttons.Edit"}}
+          </button>
+
+          <button
+            type="button"
+            data-action="reset"
+            data-puzzle-id="{{id}}"
+          >
+            {{localize "MAP.Buttons.Reset"}}
+          </button>
+
+          <button
+            type="button"
+            data-action="delete"
+            data-puzzle-id="{{id}}"
+          >
+            {{localize "MAP.Buttons.Delete"}}
+          </button>
+        </div>
+      </article>
+    {{else}}
+      <p>{{localize "MAP.Manager.Empty"}}</p>
+    {{/each}}
   </section>
 
   <footer class="map-footer">
