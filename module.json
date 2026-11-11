@@ -1,0 +1,21 @@
+{
+  "id": "mechanisms-and-puzzles",
+  "title": "Механизмы и загадки",
+  "description": "Интерактивные головоломки для сцены: пятнашки, поворотные кольца и последовательности символов. Независим от игровой системы.",
+  "version": "0.1.0",
+  "authors": [{ "name": "Автор модуля" }],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "esmodules": ["scripts/main.mjs"],
+  "styles": ["styles/puzzles.css"],
+  "languages": [
+    {
+      "lang": "ru",
+      "name": "Русский",
+      "path": "lang/ru.json"
+    }
+  ],
+  "socket": true
+}
