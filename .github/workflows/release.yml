@@ -1,0 +1,42 @@
+name: Release
+
+# Запускается при публикации релиза на GitHub. Тег должен иметь вид v1.2.3.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Подставить версию и ссылки в module.json
+        run: |
+          VERSION="${TAG#v}"
+          BASE="https://github.com/${REPO}"
+          jq \
+            --arg version "$VERSION" \
+            --arg url "$BASE" \
+            --arg manifest "$BASE/releases/latest/download/module.json" \
+            --arg download "$BASE/releases/download/${TAG}/module.zip" \
+            --arg bugs "$BASE/issues" \
+            '.version = $version | .url = $url | .manifest = $manifest | .download = $download | .bugs = $bugs' \
+            module.json > module.stamped.json
+          mv module.stamped.json module.json
+          cat module.json
+
+      - name: Собрать module.zip
+        run: |
+          FILES="$(ls -d module.json README.md LICENSE CHANGELOG.md lang scripts styles templates 2>/dev/null)"
+          zip -r module.zip $FILES
+
+      - name: Приложить файлы к релизу
+        run: gh release upload "$TAG" module.json module.zip --clobber
