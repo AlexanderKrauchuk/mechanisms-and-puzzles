@@ -18,6 +18,11 @@ export const FLAGS = Object.freeze({
   SECRET_STORE: "isSecretStore"
 });
 
+/** Короткий помощник локализации: t("errors.noGM") → строка из lang/ru.json. */
+export function t(key) {
+  return game.i18n.localize(`${MODULE_ID}.${key}`);
+}
+
 export function log(...args) {
   if (game.settings?.get(MODULE_ID, "debug")) console.log(`${MODULE_ID} |`, ...args);
 }

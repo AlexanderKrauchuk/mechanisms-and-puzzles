@@ -34,6 +34,19 @@ export class PuzzleStore {
     return scene.update({ [`flags.${MODULE_ID}.${FLAGS.PUBLIC}.${puzzleId}`]: data });
   }
 
+  /**
+   * Точечно обновляет поля публичных данных, например { state, solved }.
+   * Вложенные объекты объединяются с имеющимися, массивы заменяются целиком
+   * (так я понимаю поведение update(); проверяется тестом на живом Foundry, см. README).
+   */
+  static async patchPublic(scene, puzzleId, patch) {
+    this.#assertGM();
+    const base = `flags.${MODULE_ID}.${FLAGS.PUBLIC}.${puzzleId}`;
+    const update = {};
+    for (const [key, value] of Object.entries(patch)) update[`${base}.${key}`] = value;
+    return scene.update(update);
+  }
+
   static async deletePublic(scene, puzzleId) {
     this.#assertGM();
     return scene.update({ [`flags.${MODULE_ID}.${FLAGS.PUBLIC}.-=${puzzleId}`]: null });
