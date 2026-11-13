@@ -27,6 +27,9 @@ jobs:
       - name: Проверить синтаксис JS
         run: find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
 
+      - name: Запустить тесты
+        run: node --test "tests/**/*.test.mjs"
+
       - name: Проверить, что id модуля совпадает в manifest и constants.mjs
         run: |
           ID="$(jq -r .id module.json)"
