@@ -49,7 +49,14 @@ export function installFoundryMock() {
     ["gm1", { id: "gm1", active: true, isGM: true }],
     ["p1", { id: "p1", active: true, isGM: false }]
   ]);
-  const scene = makeDoc({ id: "scene1", flags: {} });
+  const scene = makeDoc({ id: "scene1", flags: {}, grid: { size: 100, distance: 5, units: "ft" } });
+  const makeCollection = () => {
+    const map = new Map();
+    Object.defineProperty(map, "contents", { get: () => [...map.values()] });
+    return map;
+  };
+  scene.tokens = makeCollection();
+  scene.tiles = makeCollection();
   const scenes = new Map([[scene.id, scene]]);
 
   const game = {
@@ -85,6 +92,19 @@ export function installFoundryMock() {
     scene,
     journals,
     hookCalls,
+    /** Токен на сцене. owners: id пользователей-владельцев. x, y в пикселях, width и height в клетках. */
+    addToken: ({ id, x = 0, y = 0, width = 1, height = 1, owners = [], name = id }) => {
+      const actor = { testUserPermission: (user, level) => level === "OWNER" && owners.includes(user.id) };
+      scene.tokens.set(id, { id, name, x, y, width, height, actor });
+    },
+    /** Плитка на сцене. x, y, width, height в пикселях. */
+    addTile: ({ id, x = 0, y = 0, width = 100, height = 100 }) => {
+      scene.tiles.set(id, { id, x, y, width, height });
+    },
+    clearObjects: () => {
+      scene.tokens.clear();
+      scene.tiles.clear();
+    },
     setUser: (id) => {
       game.user = users.get(id);
     }
