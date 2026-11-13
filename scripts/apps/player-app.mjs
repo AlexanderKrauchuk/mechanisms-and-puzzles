@@ -2,11 +2,23 @@ import { MODULE_ID, t } from "../constants.mjs";
 import { PuzzleStore } from "../storage.mjs";
 import { PuzzleSocket } from "../socket.mjs";
 import { isAdjacent } from "../puzzles/sliding.mjs";
+import { ringGeometry, ringLabelSize } from "../puzzles/rings.mjs";
+import { evaluateAccess } from "../proximity.mjs";
+import { accessText } from "../access-text.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /** Тип уведомления по коду результата. Коды без записи показываются без уведомления. */
-const NOTIFY_LEVEL = { wrong: "warn", failed: "warn", solved: "info", alreadySolved: "info" };
+const NOTIFY_LEVEL = {
+  wrong: "warn",
+  failed: "warn",
+  solved: "info",
+  alreadySolved: "info",
+  off: "warn",
+  tooFar: "warn",
+  noToken: "warn",
+  noObject: "warn"
+};
 
 /**
  * Окно загадки для игрока. Показывает только публичные данные.
@@ -28,7 +40,9 @@ export class PuzzleWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     actions: {
       press: PuzzleWindow.#onPress,
       clear: PuzzleWindow.#onClear,
-      slide: PuzzleWindow.#onSlide
+      slide: PuzzleWindow.#onSlide,
+      rotate: PuzzleWindow.#onRotate,
+      check: PuzzleWindow.#onCheck
     }
   };
 
@@ -82,14 +96,19 @@ export class PuzzleWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!puzzle) return { ...context, missing: true };
 
     const solved = Boolean(puzzle.solved);
+    // Подсказка игроку. Решает всё равно мастер при каждом ходе, эта проверка только для показа.
+    const scene = game.scenes.get(this.sceneId);
+    const access = game.user.isGM ? { code: "ok" } : evaluateAccess(scene, puzzle, game.user);
     const result = {
       ...context,
       missing: false,
+      accessNote: access.code === "ok" ? "" : accessText(access, scene),
       puzzle,
       solved,
       hints: puzzle.hints ?? [],
       sequence: null,
-      sliding: null
+      sliding: null,
+      rings: null
     };
 
     if (puzzle.type === "sequence") {
@@ -121,6 +140,24 @@ export class PuzzleWindow extends HandlebarsApplicationMixin(ApplicationV2) {
           disabled: solved,
           // Подсветка плиток, которые можно сдвинуть. Считается из публичных данных.
           movable: !solved && value !== 0 && isAdjacent(index, empty, cols)
+        }))
+      };
+    }
+    if (puzzle.type === "rings") {
+      const { rings, sectors, labels, checkMode } = puzzle.config;
+      const positions = puzzle.state.positions;
+      const geometry = ringGeometry({ rings, sectors, labels, positions });
+      result.rings = {
+        confirm: checkMode === "confirm",
+        moves: puzzle.state.moves ?? 0,
+        attempts: puzzle.state.attempts ?? 0,
+        fontSize: ringLabelSize({ rings, sectors, labels }),
+        rings: geometry.map((g) => ({
+          ring: g.ring,
+          number: g.ring + 1,
+          sectors: g.sectors,
+          current: g.sectors[0].label,
+          disabled: solved
         }))
       };
     }
@@ -161,5 +198,18 @@ export class PuzzleWindow extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static async #onSlide(event, target) {
     await this.#send({ action: "move", index: Number(target.dataset.index) });
+  }
+
+  /** direction: 1 поворот влево (против часовой стрелки), -1 вправо. */
+  static async #onRotate(event, target) {
+    await this.#send({
+      action: "rotate",
+      ring: Number(target.dataset.ring),
+      direction: Number(target.dataset.direction)
+    });
+  }
+
+  static async #onCheck() {
+    await this.#send({ action: "check" });
   }
 }
