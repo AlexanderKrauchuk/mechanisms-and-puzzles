@@ -1,0 +1,72 @@
+<section class="map-manager">
+  {{#if noScene}}
+    <p class="map-missing">{{localize "mechanisms-and-puzzles.manager.noScene"}}</p>
+  {{else}}
+    <header class="map-manager-head">
+      <span>{{localize "mechanisms-and-puzzles.manager.scene"}}: <strong>{{sceneName}}</strong></span>
+      <button type="button" data-action="refresh" class="map-small" title="{{localize "mechanisms-and-puzzles.manager.refresh"}}" aria-label="{{localize "mechanisms-and-puzzles.manager.refresh"}}"><i class="fa-solid fa-arrows-rotate"></i></button>
+    </header>
+
+    <div class="map-create">
+      <span>{{localize "mechanisms-and-puzzles.manager.create"}}:</span>
+      {{#each createTypes}}
+        <button type="button" data-action="create" data-type="{{this.type}}"><i class="fa-solid fa-plus"></i> {{this.label}}</button>
+      {{/each}}
+    </div>
+
+    {{#if empty}}
+      <p class="map-missing">{{localize "mechanisms-and-puzzles.manager.empty"}}</p>
+    {{else}}
+      <ul class="map-puzzle-list">
+        {{#each puzzles}}
+          <li class="map-puzzle-item">
+            <div class="map-puzzle-title">
+              <strong>{{this.name}}</strong>
+              <span class="map-tag">{{this.typeLabel}}</span>
+              <span class="map-tag {{#if this.solved}}map-tag-solved{{/if}}">{{#if this.solved}}{{localize "mechanisms-and-puzzles.manager.statusSolved"}}{{else}}{{localize "mechanisms-and-puzzles.manager.statusOpen"}}{{/if}}</span>
+            </div>
+            <div class="map-puzzle-summary">{{this.summary}}</div>
+            <div class="map-puzzle-summary">{{this.access}}</div>
+            <div class="map-puzzle-buttons">
+              <button type="button" data-action="open" data-id="{{this.id}}"><i class="fa-solid fa-up-right-from-square"></i> {{localize "mechanisms-and-puzzles.manager.open"}}</button>
+              <button type="button" data-action="edit" data-id="{{this.id}}"><i class="fa-solid fa-pen"></i> {{localize "mechanisms-and-puzzles.manager.edit"}}</button>
+              <button type="button" data-action="reset" data-id="{{this.id}}"><i class="fa-solid fa-rotate-left"></i> {{localize "mechanisms-and-puzzles.manager.reset"}}</button>
+              {{#if this.hasLink}}
+                <button type="button" data-action="locate" data-id="{{this.id}}"><i class="fa-solid fa-location-crosshairs"></i> {{localize "mechanisms-and-puzzles.manager.locate"}}</button>
+              {{/if}}
+              {{#if this.canReveal}}
+                <button type="button" data-action="reveal" data-id="{{this.id}}"><i class="fa-solid fa-eye"></i> {{localize "mechanisms-and-puzzles.manager.reveal"}}</button>
+              {{/if}}
+              <button type="button" data-action="nearSolve" data-id="{{this.id}}" title="{{localize "mechanisms-and-puzzles.manager.nearSolveHint"}}"><i class="fa-solid fa-flask"></i> {{localize "mechanisms-and-puzzles.manager.nearSolve"}}</button>
+              <button type="button" data-action="remove" data-id="{{this.id}}" class="map-danger"><i class="fa-solid fa-trash"></i> {{localize "mechanisms-and-puzzles.manager.delete"}}</button>
+            </div>
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
+
+    <details class="map-diagnostics" open>
+      <summary>{{localize "mechanisms-and-puzzles.manager.diagnostics.title"}}</summary>
+      <dl>
+        <dt>{{localize "mechanisms-and-puzzles.manager.diagnostics.foundry"}}</dt><dd>{{diagnostics.foundry}}</dd>
+        <dt>{{localize "mechanisms-and-puzzles.manager.diagnostics.moduleVersion"}}</dt><dd>{{diagnostics.moduleVersion}}</dd>
+        <dt>{{localize "mechanisms-and-puzzles.manager.diagnostics.activeGM"}}</dt><dd>{{diagnostics.activeGM}}</dd>
+        <dt>{{localize "mechanisms-and-puzzles.manager.diagnostics.players"}}</dt><dd>{{diagnostics.players}}</dd>
+        <dt>{{localize "mechanisms-and-puzzles.manager.diagnostics.puzzles"}}</dt><dd>{{diagnostics.puzzles}}</dd>
+        <dt>{{localize "mechanisms-and-puzzles.manager.diagnostics.secretStore"}}</dt>
+        <dd>
+          {{#if diagnostics.storeOk}}{{localize "mechanisms-and-puzzles.manager.diagnostics.storeOk"}}{{/if}}
+          {{#if diagnostics.storeBad}}<strong class="map-alert">{{localize "mechanisms-and-puzzles.manager.diagnostics.storeBad"}}</strong>{{/if}}
+          {{#if diagnostics.storeMissing}}<strong class="map-alert">{{localize "mechanisms-and-puzzles.manager.diagnostics.storeMissing"}}</strong>{{/if}}
+        </dd>
+      </dl>
+
+      <h4>{{localize "mechanisms-and-puzzles.manager.diagnostics.playerChecksTitle"}}</h4>
+      <p class="hint">{{localize "mechanisms-and-puzzles.manager.diagnostics.playerChecksHint"}}</p>
+      <ol class="map-checks">
+        <li><code>game.modules.get("mechanisms-and-puzzles").api.verifySecrecy()</code><br><span class="hint">{{localize "mechanisms-and-puzzles.manager.diagnostics.playerCheckSecrecy"}}</span></li>
+        <li><code>await game.modules.get("mechanisms-and-puzzles").api.socket.request("ping")</code><br><span class="hint">{{localize "mechanisms-and-puzzles.manager.diagnostics.playerCheckPing"}}</span></li>
+      </ol>
+    </details>
+  {{/if}}
+</section>

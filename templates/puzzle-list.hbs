@@ -1,0 +1,23 @@
+<section class="map-manager">
+  {{#if noScene}}
+    <p class="map-missing">{{localize "mechanisms-and-puzzles.manager.noScene"}}</p>
+  {{else if empty}}
+    <p class="map-missing">{{localize "mechanisms-and-puzzles.list.empty"}}</p>
+  {{else}}
+    <ul class="map-puzzle-list">
+      {{#each puzzles}}
+        <li class="map-puzzle-item">
+          <div class="map-puzzle-title">
+            <strong>{{this.name}}</strong>
+            <span class="map-tag">{{this.typeLabel}}</span>
+            {{#if this.solved}}<span class="map-tag map-tag-solved">{{localize "mechanisms-and-puzzles.manager.statusSolved"}}</span>{{/if}}
+          </div>
+          {{#if this.note}}<div class="map-puzzle-summary">{{this.note}}</div>{{/if}}
+          <div class="map-puzzle-buttons">
+            <button type="button" data-action="open" data-id="{{this.id}}" {{#unless this.canOpen}}disabled{{/unless}}><i class="fa-solid fa-up-right-from-square"></i> {{localize "mechanisms-and-puzzles.list.open"}}</button>
+          </div>
+        </li>
+      {{/each}}
+    </ul>
+  {{/if}}
+</section>

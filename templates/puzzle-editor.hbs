@@ -1,0 +1,133 @@
+<section class="map-editor">
+  {{#if editing}}
+    <p class="map-note"><i class="fa-solid fa-triangle-exclamation"></i> {{localize "mechanisms-and-puzzles.editor.editWarning"}}</p>
+  {{/if}}
+
+  <div class="form-group">
+    <label for="map-name">{{localize "mechanisms-and-puzzles.editor.name"}}</label>
+    <div class="form-fields"><input type="text" id="map-name" name="name" value="{{v.name}}" maxlength="80"></div>
+  </div>
+
+  <div class="form-group stacked">
+    <label for="map-description">{{localize "mechanisms-and-puzzles.editor.description"}}</label>
+    <textarea id="map-description" name="description" rows="3">{{v.description}}</textarea>
+  </div>
+
+  <div class="form-group stacked">
+    <label for="map-hints">{{localize "mechanisms-and-puzzles.editor.hints"}}</label>
+    <textarea id="map-hints" name="hints" rows="3">{{v.hints}}</textarea>
+    <p class="hint">{{localize "mechanisms-and-puzzles.editor.hintsHint"}}</p>
+  </div>
+
+  <hr>
+
+  {{#if isSequence}}
+    <div class="form-group stacked">
+      <label for="map-seq-symbols">{{localize "mechanisms-and-puzzles.editor.sequence.symbols"}}</label>
+      <input type="text" id="map-seq-symbols" name="seqSymbols" value="{{v.seqSymbols}}">
+      <p class="hint">{{localize "mechanisms-and-puzzles.editor.sequence.symbolsHint"}}</p>
+    </div>
+    <div class="form-group stacked">
+      <label for="map-seq-solution">{{localize "mechanisms-and-puzzles.editor.sequence.solution"}}</label>
+      <input type="text" id="map-seq-solution" name="seqSolution" value="{{v.seqSolution}}">
+      <p class="hint">{{localize "mechanisms-and-puzzles.editor.sequence.solutionHint"}}</p>
+    </div>
+    <div class="form-group">
+      <label for="map-seq-check">{{localize "mechanisms-and-puzzles.editor.sequence.checkMode"}}</label>
+      <div class="form-fields">
+        <select id="map-seq-check" name="seqCheckMode">
+          {{#each seqCheckModes}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="map-seq-error">{{localize "mechanisms-and-puzzles.editor.sequence.errorMode"}}</label>
+      <div class="form-fields">
+        <select id="map-seq-error" name="seqErrorMode">
+          {{#each seqErrorModes}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+    </div>
+  {{/if}}
+
+  {{#if isSliding}}
+    <p class="hint">{{localize "mechanisms-and-puzzles.editor.sliding.note"}}</p>
+    <div class="form-group">
+      <label for="map-sl-rows">{{localize "mechanisms-and-puzzles.editor.sliding.rows"}}</label>
+      <div class="form-fields"><input type="number" id="map-sl-rows" name="slRows" value="{{v.slRows}}" min="2" max="6" step="1"></div>
+    </div>
+    <div class="form-group">
+      <label for="map-sl-cols">{{localize "mechanisms-and-puzzles.editor.sliding.cols"}}</label>
+      <div class="form-fields"><input type="number" id="map-sl-cols" name="slCols" value="{{v.slCols}}" min="2" max="6" step="1"></div>
+    </div>
+  {{/if}}
+
+  {{#if isRings}}
+    <div class="form-group">
+      <label for="map-rg-rings">{{localize "mechanisms-and-puzzles.editor.rings.rings"}}</label>
+      <div class="form-fields"><input type="number" id="map-rg-rings" name="rgRings" value="{{v.rgRings}}" min="1" max="5" step="1"></div>
+    </div>
+    <div class="form-group">
+      <label for="map-rg-sectors">{{localize "mechanisms-and-puzzles.editor.rings.sectors"}}</label>
+      <div class="form-fields"><input type="number" id="map-rg-sectors" name="rgSectors" value="{{v.rgSectors}}" min="2" max="12" step="1"></div>
+    </div>
+    <div class="form-group stacked">
+      <label for="map-rg-labels">{{localize "mechanisms-and-puzzles.editor.rings.labels"}}</label>
+      <textarea id="map-rg-labels" name="rgLabels" rows="3">{{v.rgLabels}}</textarea>
+      <p class="hint">{{localize "mechanisms-and-puzzles.editor.rings.labelsHint"}}</p>
+    </div>
+    <div class="form-group stacked">
+      <label for="map-rg-solution">{{localize "mechanisms-and-puzzles.editor.rings.solution"}}</label>
+      <input type="text" id="map-rg-solution" name="rgSolution" value="{{v.rgSolution}}">
+      <p class="hint">{{localize "mechanisms-and-puzzles.editor.rings.solutionHint"}}</p>
+    </div>
+    <div class="form-group">
+      <label for="map-rg-check">{{localize "mechanisms-and-puzzles.editor.rings.checkMode"}}</label>
+      <div class="form-fields">
+        <select id="map-rg-check" name="rgCheckMode">
+          {{#each rgCheckModes}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="map-rg-fail">{{localize "mechanisms-and-puzzles.editor.rings.failOnWrong"}}</label>
+      <div class="form-fields"><input type="checkbox" id="map-rg-fail" name="rgFailOnWrong" {{#if v.rgFailOnWrong}}checked{{/if}}></div>
+    </div>
+  {{/if}}
+
+  <hr>
+
+  <fieldset class="map-access">
+    <legend>{{localize "mechanisms-and-puzzles.editor.access.title"}}</legend>
+    <div class="form-group">
+      <label for="map-mode">{{localize "mechanisms-and-puzzles.editor.access.mode"}}</label>
+      <div class="form-fields">
+        <select id="map-mode" name="interactionMode">
+          {{#each interactionModes}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+    </div>
+    <div class="form-group stacked">
+      <label>{{localize "mechanisms-and-puzzles.editor.access.link"}}</label>
+      <div class="map-link-row">
+        <input type="hidden" name="linkKind" value="{{v.linkKind}}">
+        <input type="hidden" name="linkId" value="{{v.linkId}}">
+        <span class="map-link-label" data-role="link-label">{{linkLabel}}</span>
+        <button type="button" data-action="linkToken"><i class="fa-solid fa-user"></i> {{localize "mechanisms-and-puzzles.editor.access.takeToken"}}</button>
+        <button type="button" data-action="linkTile"><i class="fa-solid fa-image"></i> {{localize "mechanisms-and-puzzles.editor.access.takeTile"}}</button>
+        <button type="button" data-action="linkClear"><i class="fa-solid fa-link-slash"></i> {{localize "mechanisms-and-puzzles.editor.access.clear"}}</button>
+      </div>
+      <p class="hint">{{localize "mechanisms-and-puzzles.editor.access.linkHint"}}</p>
+    </div>
+    <div class="form-group">
+      <label for="map-distance">{{localize "mechanisms-and-puzzles.editor.access.maxDistance"}} ({{distanceUnits}})</label>
+      <div class="form-fields"><input type="number" id="map-distance" name="maxDistance" value="{{v.maxDistance}}" min="0" max="1000" step="any"></div>
+    </div>
+    <p class="hint">{{localize "mechanisms-and-puzzles.editor.access.distanceHint"}}</p>
+  </fieldset>
+
+  <footer class="form-footer">
+    <button type="submit"><i class="fa-solid fa-floppy-disk"></i> {{localize "mechanisms-and-puzzles.editor.save"}}</button>
+    <button type="button" data-action="cancel"><i class="fa-solid fa-xmark"></i> {{localize "mechanisms-and-puzzles.editor.cancel"}}</button>
+  </footer>
+</section>

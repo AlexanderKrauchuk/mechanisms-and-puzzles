@@ -6,6 +6,10 @@
       <p class="map-description">{{puzzle.description}}</p>
     {{/if}}
 
+    {{#if accessNote}}
+      <p class="map-note" role="status"><i class="fa-solid fa-lock"></i> {{accessNote}}</p>
+    {{/if}}
+
     {{#if solved}}
       <p class="map-banner map-solved">{{localize "mechanisms-and-puzzles.puzzle.solved"}}</p>
     {{/if}}
@@ -44,6 +48,42 @@
 
       <div class="map-controls">
         <span class="map-moves">{{localize "mechanisms-and-puzzles.puzzle.moves"}}: {{sliding.moves}}</span>
+      </div>
+    {{/if}}
+
+    {{#if rings}}
+      <svg class="map-rings" viewBox="0 -12 300 312" role="img" aria-label="{{localize "mechanisms-and-puzzles.puzzle.ringsAria"}}" style="--map-font: {{rings.fontSize}}px">
+        {{#each rings.rings}}
+          <g class="map-ring">
+            {{#each this.sectors}}
+              <path class="map-sector{{#if this.pointer}} pointer{{/if}}" d="{{this.d}}"></path>
+              <text class="map-sector-label{{#if this.pointer}} pointer{{/if}}" x="{{this.x}}" y="{{this.y}}" text-anchor="middle" dominant-baseline="central">{{this.label}}</text>
+            {{/each}}
+          </g>
+        {{/each}}
+        <polygon class="map-pointer" points="141,-12 159,-12 150,0"></polygon>
+      </svg>
+
+      <ul class="map-ring-controls">
+        {{#each rings.rings}}
+          <li class="map-ring-row">
+            <span class="map-ring-name">{{localize "mechanisms-and-puzzles.puzzle.ring"}} {{this.number}}</span>
+            <button type="button" data-action="rotate" data-ring="{{this.ring}}" data-direction="1" title="{{localize "mechanisms-and-puzzles.puzzle.rotateLeft"}}" aria-label="{{localize "mechanisms-and-puzzles.puzzle.rotateLeft"}}" {{#if this.disabled}}disabled{{/if}}><i class="fa-solid fa-rotate-left"></i></button>
+            <span class="map-ring-current">{{this.current}}</span>
+            <button type="button" data-action="rotate" data-ring="{{this.ring}}" data-direction="-1" title="{{localize "mechanisms-and-puzzles.puzzle.rotateRight"}}" aria-label="{{localize "mechanisms-and-puzzles.puzzle.rotateRight"}}" {{#if this.disabled}}disabled{{/if}}><i class="fa-solid fa-rotate-right"></i></button>
+          </li>
+        {{/each}}
+      </ul>
+
+      <div class="map-controls">
+        {{#if rings.confirm}}
+          <button type="button" data-action="check" {{#if solved}}disabled{{/if}}>
+            <i class="fa-solid fa-check"></i> {{localize "mechanisms-and-puzzles.puzzle.check"}}
+          </button>
+          <span class="map-moves">{{localize "mechanisms-and-puzzles.puzzle.attempts"}}: {{rings.attempts}}</span>
+        {{else}}
+          <span class="map-moves">{{localize "mechanisms-and-puzzles.puzzle.moves"}}: {{rings.moves}}</span>
+        {{/if}}
       </div>
     {{/if}}
 
