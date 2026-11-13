@@ -29,7 +29,7 @@ export class PuzzleSocket {
 
   /** Отправляет запрос мастеру. Если запрос делает сам мастер, выполняется локально. */
   static async request(type, payload = {}) {
-    if (game.user.isGM) return PuzzleSocket.#dispatch(type, payload, game.user.id);
+    if (game.user.isGM) return PuzzleSocket.#dispatch(type, payload, game.user.id, true);
 
     if (!game.users.activeGM) {
       throw new Error(game.i18n.localize(`${MODULE_ID}.errors.noGM`));
@@ -52,10 +52,15 @@ export class PuzzleSocket {
     });
   }
 
-  static async #dispatch(type, payload, userId) {
+  /**
+   * local: запрос сделан на этом же клиенте мастера (а не пришёл по сокету).
+   * Обработчик получает это третьим аргументом: по сокету можно прислать чужой userId,
+   * поэтому поблажки мастеру (например, без проверки расстояния) даются только локальным запросам.
+   */
+  static async #dispatch(type, payload, userId, local = false) {
     const fn = handlers.get(type);
     if (!fn) throw new Error(game.i18n.localize(`${MODULE_ID}.errors.unknownRequest`));
-    return fn(payload, userId);
+    return fn(payload, userId, { local });
   }
 
   static async #onMessage(message) {
