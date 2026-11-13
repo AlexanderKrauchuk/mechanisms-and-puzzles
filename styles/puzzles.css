@@ -1,1 +1,319 @@
-/* Стили окон загадок будут добавлены на этапах 2-7. */
+/* Окно загадки для игрока. Цвета наследуются от темы Foundry. */
+
+.mechanisms-and-puzzles .map-puzzle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-description {
+  margin: 0;
+}
+
+.mechanisms-and-puzzles .map-banner {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.mechanisms-and-puzzles .map-slots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.mechanisms-and-puzzles .map-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  border: 2px dashed currentColor;
+  border-radius: 6px;
+  font-size: 1.4rem;
+  opacity: 0.5;
+}
+
+.mechanisms-and-puzzles .map-slot.filled {
+  border-style: solid;
+  opacity: 1;
+}
+
+.mechanisms-and-puzzles .map-symbols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(3.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-symbol {
+  height: 3.5rem;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.mechanisms-and-puzzles .map-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-controls button {
+  width: auto;
+}
+
+/* Пятнашки */
+.mechanisms-and-puzzles .map-board {
+  display: grid;
+  grid-template-columns: repeat(var(--map-cols, 3), 1fr);
+  gap: 0.35rem;
+}
+
+.mechanisms-and-puzzles .map-cell {
+  aspect-ratio: 1;
+  min-width: 0;
+}
+
+.mechanisms-and-puzzles .map-tile {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.mechanisms-and-puzzles .map-tile.movable {
+  outline: 2px solid currentColor;
+}
+
+.mechanisms-and-puzzles .map-empty-cell {
+  border: 2px dashed currentColor;
+  border-radius: 6px;
+  opacity: 0.25;
+}
+
+/* Поворотные кольца */
+.mechanisms-and-puzzles .map-rings {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.mechanisms-and-puzzles .map-sector {
+  fill: currentColor;
+  fill-opacity: 0.08;
+  stroke: currentColor;
+  stroke-opacity: 0.45;
+  stroke-width: 1;
+}
+
+.mechanisms-and-puzzles .map-sector.pointer {
+  fill-opacity: 0.32;
+  stroke-opacity: 1;
+}
+
+.mechanisms-and-puzzles .map-sector-label {
+  fill: currentColor;
+  font-size: var(--map-font, 14px);
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.mechanisms-and-puzzles .map-pointer {
+  fill: currentColor;
+}
+
+.mechanisms-and-puzzles .map-ring-controls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mechanisms-and-puzzles .map-ring-row {
+  display: grid;
+  grid-template-columns: 1fr auto minmax(3rem, auto) auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-ring-row button {
+  width: 2.5rem;
+  height: 2rem;
+  padding: 0;
+}
+
+.mechanisms-and-puzzles .map-ring-current {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Окно мастера и редактор */
+.mechanisms-and-puzzles .map-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-manager-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-small {
+  width: 2.25rem;
+  padding: 0;
+}
+
+.mechanisms-and-puzzles .map-create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mechanisms-and-puzzles .map-create button,
+.mechanisms-and-puzzles .map-puzzle-buttons button {
+  width: auto;
+}
+
+.mechanisms-and-puzzles .map-puzzle-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-puzzle-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+
+.mechanisms-and-puzzles .map-puzzle-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mechanisms-and-puzzles .map-tag {
+  padding: 0 0.4rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.mechanisms-and-puzzles .map-tag-solved {
+  font-weight: bold;
+  opacity: 1;
+}
+
+.mechanisms-and-puzzles .map-puzzle-summary {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.mechanisms-and-puzzles .map-puzzle-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.mechanisms-and-puzzles .map-diagnostics dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.2rem 0.75rem;
+  margin: 0.4rem 0;
+}
+
+.mechanisms-and-puzzles .map-diagnostics dt {
+  font-weight: bold;
+}
+
+.mechanisms-and-puzzles .map-diagnostics dd {
+  margin: 0;
+}
+
+.mechanisms-and-puzzles .map-alert {
+  text-decoration: underline;
+}
+
+.mechanisms-and-puzzles .map-checks {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.mechanisms-and-puzzles .map-checks code {
+  user-select: all;
+  word-break: break-all;
+}
+
+.mechanisms-and-puzzles .map-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-editor .form-footer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-note {
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+}
+
+.mechanisms-and-puzzles .map-hints ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.25rem;
+}
+
+/* Привязка и доступ в редакторе */
+.mechanisms-and-puzzles .map-access {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+
+.mechanisms-and-puzzles .map-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mechanisms-and-puzzles .map-link-row button {
+  width: auto;
+}
+
+.mechanisms-and-puzzles .map-link-label {
+  font-weight: bold;
+}
