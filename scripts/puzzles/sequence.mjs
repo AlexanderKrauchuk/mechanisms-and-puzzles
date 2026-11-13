@@ -83,6 +83,11 @@ export const SequencePuzzle = {
     return { entered: [], mistakes: 0 };
   },
 
+  /** Тестовая подготовка для мастера: введено всё, кроме последнего символа. */
+  nearSolved(_config, secret) {
+    return { entered: secret.solution.slice(0, -1), mistakes: 0 };
+  },
+
   applyMove({ config, state, secret, move }) {
     const entered = [...(state?.entered ?? [])];
     const mistakes = state?.mistakes ?? 0;

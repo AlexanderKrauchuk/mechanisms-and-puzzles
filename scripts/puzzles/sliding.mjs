@@ -35,8 +35,16 @@ export const SlidingPuzzle = {
   },
 
   /** Новое перемешанное решаемое поле. rng нужен только тестам (по умолчанию Math.random). */
-  initialState(config, rng = Math.random) {
+  initialState(config, _secret, rng = Math.random) {
     return { tiles: shuffledTiles(config.rows, config.cols, rng), moves: 0 };
+  },
+
+  /** Тестовая подготовка для мастера: до решения остаётся один ход (последняя плитка справа от пустой клетки). */
+  nearSolved(config) {
+    const tiles = goalTiles(config.rows, config.cols);
+    const last = tiles.length - 1;
+    [tiles[last - 1], tiles[last]] = [tiles[last], tiles[last - 1]];
+    return { tiles, moves: 0 };
   },
 
   applyMove({ config, state, move }) {
