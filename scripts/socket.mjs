@@ -6,6 +6,8 @@ const REQUEST_TIMEOUT_MS = 10000;
 const handlers = new Map();
 /** Ожидающие ответа запросы на клиенте игрока. */
 const pending = new Map();
+/** Обработчики рассылок «мастер → все» (например, всплывающее сообщение игрокам). */
+const broadcastHandlers = new Map();
 
 /**
  * Обмен «игрок → мастер».
@@ -25,6 +27,21 @@ export class PuzzleSocket {
   /** Регистрирует обработчик типа запроса (работает на клиенте мастера). */
   static handle(type, fn) {
     handlers.set(type, fn);
+  }
+
+  /**
+   * Регистрирует приём рассылки на каждом клиенте. Рассылку может отправить любой клиент
+   * (сервер отправителя не подтверждает), поэтому обработчик должен делать только безобидное,
+   * например показать текст, и не доверять содержимому.
+   */
+  static onBroadcast(type, fn) {
+    broadcastHandlers.set(type, fn);
+  }
+
+  /** Рассылает сообщение всем клиентам и выполняет обработчик у отправителя (сокет ему не возвращает). */
+  static broadcast(type, payload = {}) {
+    game.socket.emit(SOCKET_NAME, { kind: "broadcast", type, payload });
+    broadcastHandlers.get(type)?.(payload);
   }
 
   /** Отправляет запрос мастеру. Если запрос делает сам мастер, выполняется локально. */
@@ -65,6 +82,11 @@ export class PuzzleSocket {
 
   static async #onMessage(message) {
     log("socket", message);
+
+    if (message?.kind === "broadcast") {
+      broadcastHandlers.get(message.type)?.(message.payload);
+      return;
+    }
 
     if (message?.kind === "request") {
       // Обрабатывает только один мастер, иначе при нескольких мастерах действия задвоятся.

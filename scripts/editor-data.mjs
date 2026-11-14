@@ -14,6 +14,8 @@
  *   - кольца: для каждого кольца номер подписи, которая должна оказаться у указателя.
  */
 
+import { normalizeLabels } from "./puzzles/rings.mjs";
+
 const TOKEN_SPLIT = /[\s,;]+/;
 const LABEL_SPLIT = /[,\n]+/;
 
@@ -161,4 +163,43 @@ export function defaultEditorValues(type = "sequence") {
     rgCheckMode: "auto",
     rgFailOnWrong: false
   };
+}
+
+/**
+ * Подсказки под полями формы, чтобы видеть, что именно вы набрали.
+ * Возвращает { numbering, solution }: строки (пустые, если разобрать не удалось).
+ *   numbering: «1=☀  2=☾ ...» (какой номер у какого символа);
+ *   solution:  последовательность символов или подписи у метки каждого кольца.
+ */
+export function previewEditor(values) {
+  const empty = { numbering: "", solution: "" };
+  const parsed = parseEditorForm(values);
+  if (parsed.error) return empty;
+  const { config, solution } = parsed.input;
+  const type = parsed.input.type;
+
+  if (type === "sequence") {
+    const labels = config.symbols.map((s) => s.label);
+    const byId = new Map(config.symbols.map((s) => [s.id, s.label]));
+    return {
+      numbering: labels.map((l, i) => `${i + 1}=${l}`).join("   "),
+      solution: solution.map((id) => byId.get(id) ?? "?").join("  →  ")
+    };
+  }
+
+  if (type === "rings") {
+    const { rings, sectors } = config;
+    if (!Number.isInteger(rings) || !Number.isInteger(sectors) || rings < 1 || sectors < 1) return empty;
+    const labels = normalizeLabels(config.labels, rings, sectors);
+    if (!labels) return empty;
+    const same = labels.every((ring) => ring.join("|") === labels[0].join("|"));
+    return {
+      numbering: same ? labels[0].map((l, i) => `${i + 1}=${l}`).join("   ") : "",
+      solution: solution
+        .slice(0, rings)
+        .map((pos, ring) => `${ring + 1}: ${labels[ring]?.[pos] ?? "?"}`)
+        .join("   ")
+    };
+  }
+  return empty;
 }

@@ -4,6 +4,9 @@ import { PuzzleSocket } from "./socket.mjs";
 import { getPuzzleType, PuzzleMoveError } from "./puzzles/base.mjs";
 import { defaultInteraction, defaultLink, normalizeInteraction, normalizeLink, validateAccess } from "./access.mjs";
 import { evaluateAccess } from "./proximity.mjs";
+import { OUTCOMES, emptyActions, normalizeActions, validateActions } from "./actions.mjs";
+import { runActions } from "./action-runner.mjs";
+import { RateLimiter } from "./rate-limit.mjs";
 
 /**
  * Движок загадок. Вся проверка и все изменения состояния происходят здесь,
@@ -11,6 +14,13 @@ import { evaluateAccess } from "./proximity.mjs";
  */
 export class PuzzleEngine {
   static #queue = Promise.resolve();
+  /** Не больше 30 ходов за 5 секунд от одного игрока. */
+  static #limiter = new RateLimiter({ limit: 30, windowMs: 5000 });
+
+  /** Для тестов: сбрасывает счётчики частоты ходов. */
+  static resetRateLimit() {
+    PuzzleEngine.#limiter.reset();
+  }
 
   /** Ходы выполняются строго по очереди, чтобы два игрока не затёрли состояние друг друга. */
   static #serialize(fn) {
@@ -57,7 +67,7 @@ export class PuzzleEngine {
       state: built.state,
       solved: false
     };
-    const secretData = { ...built.secret, actions: { success: [], failure: [] } };
+    const secretData = { ...built.secret, actions: emptyActions() };
 
     return PuzzleStore.create(scene, { publicData, secretData });
   }
@@ -105,7 +115,7 @@ export class PuzzleEngine {
         normalizeLink(pub.link)
       );
       const built = impl.build({ config, solution: input.solution });
-      await PuzzleStore.setSecret(puzzleId, { ...built.secret, actions: secret.actions ?? { success: [], failure: [] } });
+      await PuzzleStore.setSecret(puzzleId, { ...built.secret, actions: secret.actions ?? emptyActions() });
       await PuzzleStore.patchPublic(scene, puzzleId, {
         name: String(input.name ?? "").trim() || t(`types.${impl.type}`),
         description: String(input.description ?? ""),
@@ -117,6 +127,75 @@ export class PuzzleEngine {
         solved: false
       });
     });
+  }
+
+  /** Выполняет действия исхода и сообщает мастеру о тех, что не удались. */
+  static async #runOutcome(scene, pub, secret, outcome) {
+    const actions = normalizeActions(secret.actions)[outcome] ?? [];
+    if (!actions.length) return [];
+    let results;
+    try {
+      results = await runActions(actions, { scene, puzzle: pub });
+    } catch (err) {
+      console.error(`${MODULE_ID} |`, err);
+      return [];
+    }
+    PuzzleEngine.#reportFailures(pub, outcome, results);
+    return results;
+  }
+
+  /** Показывает мастеру ошибки действий (только на его клиенте). */
+  static #reportFailures(pub, outcome, results) {
+    if (!game.user?.isGM) return;
+    for (const r of results.filter((x) => !x.ok)) {
+      const text = game.i18n.format(`${MODULE_ID}.actions.failed`, {
+        puzzle: pub.name,
+        outcome: t(`actions.outcome.${outcome}`),
+        n: r.index + 1,
+        reason: t(`actions.reason.${r.code}`)
+      });
+      globalThis.ui?.notifications?.warn(text);
+    }
+  }
+
+  /** Действия загадки для формы редактора (только мастер). */
+  static getActions(scene, puzzleId) {
+    const { secret } = PuzzleEngine.getForEdit(scene, puzzleId);
+    return normalizeActions(secret.actions);
+  }
+
+  /**
+   * Сохраняет действия загадки (только мастер). Проверяет данные, при ошибке ничего не меняет.
+   * actions: { success: [...], failure: [...] }, формат в actions.mjs.
+   */
+  static async setActions(scene, puzzleId, actions) {
+    if (!game.user.isGM) throw new Error(t("errors.gmOnly"));
+    const errors = validateActions(actions);
+    if (errors.length) {
+      const details = errors
+        .map((e) => {
+          const place = `${t(`actions.outcome.${e.outcome}`)}${e.index >= 0 ? ` №${e.index + 1}` : ""}`;
+          return `${place}: ${t(`errors.actions.${e.code}`)}`;
+        })
+        .join("; ");
+      throw new Error(`${t("errors.invalidActions")}: ${details}`);
+    }
+    return PuzzleEngine.#serialize(async () => {
+      const secret = PuzzleStore.getSecret(puzzleId);
+      if (!secret || !PuzzleStore.getPublic(puzzleId, scene)) throw new Error(t("errors.noPuzzle"));
+      await PuzzleStore.setSecret(puzzleId, { ...secret, actions: normalizeActions(actions) });
+    });
+  }
+
+  /**
+   * Пробный запуск действий исхода (только мастер), состояние загадки не меняется.
+   * Возвращает результаты по действиям и показывает ошибки.
+   */
+  static async testActions(scene, puzzleId, outcome) {
+    if (!game.user.isGM) throw new Error(t("errors.gmOnly"));
+    if (!OUTCOMES.includes(outcome)) throw new Error(t("errors.unknownRequest"));
+    const { pub, secret } = PuzzleEngine.getForEdit(scene, puzzleId);
+    return PuzzleEngine.#runOutcome(scene, pub, secret, outcome);
   }
 
   /** Удаляет загадку (только мастер). */
@@ -174,17 +253,24 @@ export class PuzzleEngine {
    */
   static async handleMove(payload, userId, meta = {}) {
     const { sceneId, puzzleId, move } = payload ?? {};
-    if (
-      typeof sceneId !== "string" ||
-      typeof puzzleId !== "string" ||
-      typeof move !== "object" ||
-      move === null
-    ) {
+    const isId = (v) => typeof v === "string" && v.length > 0 && v.length <= 64;
+    if (!isId(sceneId) || !isId(puzzleId) || typeof move !== "object" || move === null || Array.isArray(move)) {
       throw new Error(t("errors.invalidMove"));
     }
+    if (typeof move.action !== "string" || move.action.length > 32) throw new Error(t("errors.invalidMove"));
     // userId присылает клиент, сервер его не подтверждает. Проверка только отсекает мусор.
     const user = game.users.get(userId);
     if (!user?.active) throw new Error(t("errors.unknownRequest"));
+
+    // Мастер на своём клиенте не ограничен ни сценой, ни частотой.
+    const trusted = meta.local === true && user.isGM;
+    // Игрок действует только на той сцене, которую сейчас смотрит (User#viewedScene: id сцены или null).
+    if (!trusted && user.viewedScene !== undefined && user.viewedScene !== sceneId) {
+      return { code: "otherScene", outcome: null, solved: false };
+    }
+    if (!trusted && !PuzzleEngine.#limiter.allow(userId)) {
+      return { code: "tooFast", outcome: null, solved: false };
+    }
 
     return PuzzleEngine.#serialize(async () => {
       const scene = game.scenes.get(sceneId);
@@ -212,13 +298,15 @@ export class PuzzleEngine {
       await PuzzleStore.patchPublic(scene, puzzleId, { state: result.state, solved: result.solved });
 
       if (result.outcome) {
-        // Собственное событие модуля. На этапе 6 на него повесятся действия при успехе и провале.
+        // Собственное событие модуля: на него могут подписаться другие модули и макросы.
         Hooks.callAll(`${MODULE_ID}.outcome`, {
           scene,
           puzzleId,
           outcome: result.outcome,
           userId
         });
+        // Действия мастера. Их ошибки не должны ломать ход игрока.
+        await PuzzleEngine.#runOutcome(scene, pub, secret, result.outcome);
       }
 
       // Игроку уходит только код результата, без решения и без секретных данных.

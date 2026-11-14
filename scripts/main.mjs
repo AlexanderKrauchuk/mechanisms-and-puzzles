@@ -123,6 +123,14 @@ Hooks.once("ready", async () => {
   PuzzleSocket.register();
   PuzzleEngine.register();
 
+  // Всплывающее сообщение игрокам (действие «сообщение»). Рассылку может прислать любой клиент,
+  // поэтому показываем только текст: угловые скобки убираем, чтобы никто не вставил разметку.
+  PuzzleSocket.onBroadcast("notify", ({ text, level } = {}) => {
+    const clean = String(text ?? "").replace(/[<>]/g, "").slice(0, 500);
+    if (!clean) return;
+    ui.notifications[level === "warn" ? "warn" : "info"](clean);
+  });
+
   // Проверочный запрос, чтобы убедиться, что канал игрок → мастер работает.
   PuzzleSocket.handle("ping", async (_payload, userId) => ({
     pong: true,

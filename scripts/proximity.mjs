@@ -5,7 +5,7 @@ import { checkAccess, normalizeLink, rectCenter } from "./access.mjs";
  * и токены пользователя на сцене. Работает с документами сцены (scene.tokens, scene.tiles),
  * поэтому не требует, чтобы сцена была открыта на холсте.
  *
- * Не проверено на живом Foundry (см. README): Actor#testUserPermission(user, "OWNER")
+ * Не проверено на живом Foundry (см. README): Actor#testUserPermission(user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)
  * для определения «токен принадлежит игроку» и scene.grid.size / scene.grid.distance.
  */
 
@@ -35,7 +35,7 @@ export function linkedRect(scene, link) {
 export function userTokenRects(scene, user) {
   const { size } = gridOf(scene);
   return docs(scene.tokens)
-    .filter((doc) => doc.actor?.testUserPermission?.(user, "OWNER"))
+    .filter((doc) => doc.actor?.testUserPermission?.(user, CONST.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? "OWNER"))
     .map((doc) => tokenRect(doc, size));
 }
 
