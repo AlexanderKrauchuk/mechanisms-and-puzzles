@@ -1,4 +1,40 @@
-/* Окно загадки для игрока. Цвета наследуются от темы Foundry. */
+/*
+ * Стили модуля «Механизмы и загадки».
+ * Цвета берутся от темы Foundry (currentColor), поэтому окна читаются и в тёмной, и в светлой теме.
+ * Акценты заданы с запасными значениями на случай, если переменной темы нет.
+ */
+
+.mechanisms-and-puzzles {
+  --map-border: color-mix(in srgb, currentColor 35%, transparent);
+  --map-border-strong: color-mix(in srgb, currentColor 70%, transparent);
+  --map-surface: color-mix(in srgb, currentColor 6%, transparent);
+  --map-surface-hover: color-mix(in srgb, currentColor 14%, transparent);
+  --map-radius: 6px;
+  --map-ok: var(--color-level-success, #3f9d5a);
+  --map-warn: #c98a1b;
+  --map-bad: var(--color-level-error, #c0463c);
+  --map-focus: var(--color-warm-2, #d9a441);
+}
+
+/* Фокус с клавиатуры виден всегда */
+.mechanisms-and-puzzles button:focus-visible,
+.mechanisms-and-puzzles input:focus-visible,
+.mechanisms-and-puzzles select:focus-visible,
+.mechanisms-and-puzzles textarea:focus-visible,
+.mechanisms-and-puzzles summary:focus-visible {
+  outline: 2px solid var(--map-focus);
+  outline-offset: 1px;
+}
+
+.mechanisms-and-puzzles button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mechanisms-and-puzzles .map-danger {
+  border-color: var(--map-bad);
+  color: var(--map-bad);
+}
 
 .mechanisms-and-puzzles .map-puzzle {
   display: flex;
@@ -14,8 +50,9 @@
 .mechanisms-and-puzzles .map-banner {
   margin: 0;
   padding: 0.5rem 0.75rem;
-  border: 1px solid currentColor;
-  border-radius: 4px;
+  border: 1px solid var(--map-border-strong);
+  background: var(--map-surface);
+  border-radius: var(--map-radius);
   text-align: center;
   font-weight: bold;
 }
@@ -33,14 +70,15 @@
   justify-content: center;
   min-width: 2.5rem;
   height: 2.5rem;
-  border: 2px dashed currentColor;
-  border-radius: 6px;
+  border: 2px dashed var(--map-border-strong);
+  border-radius: var(--map-radius);
   font-size: 1.4rem;
   opacity: 0.5;
 }
 
 .mechanisms-and-puzzles .map-slot.filled {
   border-style: solid;
+  background: var(--map-surface);
   opacity: 1;
 }
 
@@ -87,13 +125,33 @@
   line-height: 1;
 }
 
+.mechanisms-and-puzzles .map-tile {
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
 .mechanisms-and-puzzles .map-tile.movable {
-  outline: 2px solid currentColor;
+  outline: 2px solid var(--map-focus);
+  outline-offset: -2px;
+}
+
+.mechanisms-and-puzzles .map-tile.movable:hover:not(:disabled) {
+  background: var(--map-surface-hover);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mechanisms-and-puzzles .map-tile {
+    transition: none;
+  }
+
+  .mechanisms-and-puzzles .map-tile.movable:hover:not(:disabled) {
+    transform: none;
+  }
 }
 
 .mechanisms-and-puzzles .map-empty-cell {
-  border: 2px dashed currentColor;
-  border-radius: 6px;
+  border: 2px dashed var(--map-border-strong);
+  border-radius: var(--map-radius);
   opacity: 0.25;
 }
 
@@ -199,12 +257,13 @@
 }
 
 .mechanisms-and-puzzles .map-puzzle-item {
+  background: var(--map-surface);
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.5rem 0.6rem;
-  border: 1px solid currentColor;
-  border-radius: 6px;
+  border: 1px solid var(--map-border);
+  border-radius: var(--map-radius);
 }
 
 .mechanisms-and-puzzles .map-puzzle-title {
@@ -216,7 +275,7 @@
 
 .mechanisms-and-puzzles .map-tag {
   padding: 0 0.4rem;
-  border: 1px solid currentColor;
+  border: 1px solid var(--map-border);
   border-radius: 999px;
   font-size: 0.8rem;
   opacity: 0.8;
@@ -225,6 +284,8 @@
 .mechanisms-and-puzzles .map-tag-solved {
   font-weight: bold;
   opacity: 1;
+  border-color: var(--map-ok);
+  color: var(--map-ok);
 }
 
 .mechanisms-and-puzzles .map-puzzle-summary {
@@ -283,7 +344,7 @@
 .mechanisms-and-puzzles .map-note {
   margin: 0;
   padding: 0.4rem 0.6rem;
-  border: 1px solid currentColor;
+  border: 1px solid var(--map-border);
   border-radius: 4px;
 }
 
@@ -299,8 +360,8 @@
   gap: 0.5rem;
   margin: 0;
   padding: 0.5rem 0.75rem;
-  border: 1px solid currentColor;
-  border-radius: 6px;
+  border: 1px solid var(--map-border);
+  border-radius: var(--map-radius);
 }
 
 .mechanisms-and-puzzles .map-link-row {
@@ -316,4 +377,127 @@
 
 .mechanisms-and-puzzles .map-link-label {
   font-weight: bold;
+}
+
+/* Прокрутка: окно не выше экрана, содержимое прокручивается */
+.application.mechanisms-and-puzzles {
+  max-height: calc(100vh - 32px);
+}
+
+.application.mechanisms-and-puzzles .window-content {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Палитра символов и подсказки в редакторе */
+.mechanisms-and-puzzles .map-preview {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 1.1rem;
+  word-break: break-word;
+}
+
+.mechanisms-and-puzzles .map-palette {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--map-border);
+  border-radius: var(--map-radius);
+}
+
+.mechanisms-and-puzzles .map-palette > summary,
+.mechanisms-and-puzzles .map-palette-group > summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.mechanisms-and-puzzles .map-palette-presets,
+.mechanisms-and-puzzles .map-palette-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.3rem 0;
+}
+
+.mechanisms-and-puzzles .map-chip {
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.mechanisms-and-puzzles .map-chip.map-chip-wide {
+  width: auto;
+  padding: 0 0.6rem;
+  font-size: 0.9rem;
+}
+
+/* Редактор действий */
+.mechanisms-and-puzzles .map-action-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  border: 1px solid var(--map-border);
+  border-radius: var(--map-radius);
+  margin-bottom: 0.4rem;
+}
+
+.mechanisms-and-puzzles .map-action-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mechanisms-and-puzzles .map-action-tools {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.mechanisms-and-puzzles .map-action-tools button {
+  width: 2.25rem;
+}
+
+/* Самопроверка прав */
+.mechanisms-and-puzzles .map-audit-button {
+  width: auto;
+  margin: 0.25rem 0;
+}
+
+.map-audit {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.map-audit li {
+  padding: 0.35rem 0.6rem;
+  border-left: 4px solid currentColor;
+}
+
+.map-audit .map-audit-ok {
+  border-left-color: #3f9d5a;
+}
+
+.map-audit .map-audit-warn {
+  border-left-color: #c98a1b;
+}
+
+.map-audit .map-audit-fail {
+  border-left-color: #c0463c;
+}
+
+.mechanisms-and-puzzles .map-banner.map-solved {
+  border-color: var(--map-ok);
+  color: var(--map-ok);
+}
+
+.mechanisms-and-puzzles .map-missing {
+  margin: 0;
+  font-style: italic;
+  opacity: 0.8;
 }
