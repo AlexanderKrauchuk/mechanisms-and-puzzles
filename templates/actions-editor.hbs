@@ -1,0 +1,113 @@
+<section class="map-editor map-actions">
+  <p class="map-note"><i class="fa-solid fa-triangle-exclamation"></i> {{localize "mechanisms-and-puzzles.actions.secretNote"}}</p>
+  <p class="hint">{{macrosNote}}</p>
+
+  {{#each outcomes}}
+    <fieldset class="map-access">
+      <legend>{{this.title}}</legend>
+      <p class="hint">{{this.hint}}</p>
+
+      {{#each this.rows}}
+        <div class="map-action-row">
+          <div class="map-action-head">
+            <strong>{{this.n}}. {{this.typeLabel}}</strong>
+            <input type="hidden" name="{{this.name}}.type" value="{{this.type}}">
+            <span class="map-action-tools">
+              <button type="button" class="map-small" data-action="moveAction" data-outcome="{{this.outcome}}" data-index="{{this.index}}" data-step="-1" {{#if this.first}}disabled{{/if}} title="{{localize "mechanisms-and-puzzles.actions.up"}}" aria-label="{{localize "mechanisms-and-puzzles.actions.up"}}"><i class="fa-solid fa-arrow-up"></i></button>
+              <button type="button" class="map-small" data-action="moveAction" data-outcome="{{this.outcome}}" data-index="{{this.index}}" data-step="1" {{#if this.last}}disabled{{/if}} title="{{localize "mechanisms-and-puzzles.actions.down"}}" aria-label="{{localize "mechanisms-and-puzzles.actions.down"}}"><i class="fa-solid fa-arrow-down"></i></button>
+              <button type="button" class="map-small map-danger" data-action="removeAction" data-outcome="{{this.outcome}}" data-index="{{this.index}}" title="{{localize "mechanisms-and-puzzles.actions.remove"}}" aria-label="{{localize "mechanisms-and-puzzles.actions.remove"}}"><i class="fa-solid fa-trash"></i></button>
+            </span>
+          </div>
+
+          {{#if this.isMessage}}
+            <div class="form-group stacked">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.messageText"}}</label>
+              <textarea name="{{this.name}}.text" rows="2" maxlength="500">{{this.text}}</textarea>
+            </div>
+          {{/if}}
+
+          {{#if this.isChat}}
+            <div class="form-group stacked">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.chatText"}}</label>
+              <textarea name="{{this.name}}.text" rows="3" maxlength="2000">{{this.text}}</textarea>
+            </div>
+            <div class="form-group">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.audience"}}</label>
+              <div class="form-fields">
+                <select name="{{this.name}}.audience">
+                  {{#each this.audiences}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+                </select>
+              </div>
+            </div>
+          {{/if}}
+
+          {{#if this.isTile}}
+            <div class="form-group stacked">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.tile"}}</label>
+              <div class="map-link-row">
+                <input type="text" name="{{this.name}}.tileId" value="{{this.tileId}}">
+                <button type="button" data-action="takeTile" data-outcome="{{this.outcome}}" data-index="{{this.index}}"><i class="fa-solid fa-image"></i> {{localize "mechanisms-and-puzzles.actions.takeTile"}}</button>
+                <span data-role="tile-status">{{this.tileStatus}}</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.tileMode"}}</label>
+              <div class="form-fields">
+                <select name="{{this.name}}.mode">
+                  {{#each this.tileModes}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+                </select>
+              </div>
+            </div>
+          {{/if}}
+
+          {{#if this.isDoor}}
+            <div class="form-group stacked">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.wall"}}</label>
+              <div class="map-link-row">
+                <input type="text" name="{{this.name}}.wallId" value="{{this.wallId}}">
+                <button type="button" data-action="takeWall" data-outcome="{{this.outcome}}" data-index="{{this.index}}"><i class="fa-solid fa-door-closed"></i> {{localize "mechanisms-and-puzzles.actions.takeWall"}}</button>
+                <span data-role="wall-status">{{this.wallStatus}}</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.doorState"}}</label>
+              <div class="form-fields">
+                <select name="{{this.name}}.state">
+                  {{#each this.doorStates}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+                </select>
+              </div>
+            </div>
+          {{/if}}
+
+          {{#if this.isSound}}
+            <div class="form-group stacked">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.soundSrc"}}</label>
+              <div class="map-link-row">
+                <input type="text" name="{{this.name}}.src" value="{{this.src}}">
+                <button type="button" data-action="pickSound" data-outcome="{{this.outcome}}" data-index="{{this.index}}"><i class="fa-solid fa-file-audio"></i> {{localize "mechanisms-and-puzzles.actions.pickSound"}}</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>{{localize "mechanisms-and-puzzles.actions.fields.volume"}}</label>
+              <div class="form-fields"><input type="number" name="{{this.name}}.volume" value="{{this.volume}}" min="0" max="100" step="5"></div>
+            </div>
+          {{/if}}
+        </div>
+      {{else}}
+        <p class="hint">{{localize "mechanisms-and-puzzles.actions.none"}}</p>
+      {{/each}}
+
+      <div class="map-link-row">
+        <select data-add-for="{{this.id}}">
+          {{#each @root.types}}<option value="{{this.value}}">{{this.label}}</option>{{/each}}
+        </select>
+        <button type="button" data-action="addAction" data-outcome="{{this.id}}"><i class="fa-solid fa-plus"></i> {{localize "mechanisms-and-puzzles.actions.add"}}</button>
+      </div>
+    </fieldset>
+  {{/each}}
+
+  <footer class="form-footer">
+    <button type="submit"><i class="fa-solid fa-floppy-disk"></i> {{localize "mechanisms-and-puzzles.editor.save"}}</button>
+    <button type="button" data-action="cancel"><i class="fa-solid fa-xmark"></i> {{localize "mechanisms-and-puzzles.editor.cancel"}}</button>
+  </footer>
+</section>

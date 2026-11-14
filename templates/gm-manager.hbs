@@ -27,10 +27,14 @@
             </div>
             <div class="map-puzzle-summary">{{this.summary}}</div>
             <div class="map-puzzle-summary">{{this.access}}</div>
+            <div class="map-puzzle-summary">{{this.actionsLine}}</div>
             <div class="map-puzzle-buttons">
               <button type="button" data-action="open" data-id="{{this.id}}"><i class="fa-solid fa-up-right-from-square"></i> {{localize "mechanisms-and-puzzles.manager.open"}}</button>
               <button type="button" data-action="edit" data-id="{{this.id}}"><i class="fa-solid fa-pen"></i> {{localize "mechanisms-and-puzzles.manager.edit"}}</button>
               <button type="button" data-action="reset" data-id="{{this.id}}"><i class="fa-solid fa-rotate-left"></i> {{localize "mechanisms-and-puzzles.manager.reset"}}</button>
+              <button type="button" data-action="actions" data-id="{{this.id}}"><i class="fa-solid fa-bolt"></i> {{localize "mechanisms-and-puzzles.manager.actions"}}</button>
+              <button type="button" data-action="testActions" data-id="{{this.id}}" data-outcome="success" title="{{localize "mechanisms-and-puzzles.manager.testActionsHint"}}"><i class="fa-solid fa-flask"></i> {{localize "mechanisms-and-puzzles.manager.testSuccess"}}</button>
+              <button type="button" data-action="testActions" data-id="{{this.id}}" data-outcome="failure" title="{{localize "mechanisms-and-puzzles.manager.testActionsHint"}}"><i class="fa-solid fa-flask"></i> {{localize "mechanisms-and-puzzles.manager.testFailure"}}</button>
               {{#if this.hasLink}}
                 <button type="button" data-action="locate" data-id="{{this.id}}"><i class="fa-solid fa-location-crosshairs"></i> {{localize "mechanisms-and-puzzles.manager.locate"}}</button>
               {{/if}}
@@ -60,6 +64,8 @@
           {{#if diagnostics.storeMissing}}<strong class="map-alert">{{localize "mechanisms-and-puzzles.manager.diagnostics.storeMissing"}}</strong>{{/if}}
         </dd>
       </dl>
+
+      <button type="button" data-action="audit" class="map-audit-button"><i class="fa-solid fa-shield-halved"></i> {{localize "mechanisms-and-puzzles.audit.button"}}</button>
 
       <h4>{{localize "mechanisms-and-puzzles.manager.diagnostics.playerChecksTitle"}}</h4>
       <p class="hint">{{localize "mechanisms-and-puzzles.manager.diagnostics.playerChecksHint"}}</p>
