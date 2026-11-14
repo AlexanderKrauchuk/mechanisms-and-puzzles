@@ -55,22 +55,43 @@ export function installFoundryMock() {
     Object.defineProperty(map, "contents", { get: () => [...map.values()] });
     return map;
   };
+  const sceneOwners = new Set();
+  scene.testUserPermission = (user, level) => level <= 3 && sceneOwners.has(user.id);
   scene.tokens = makeCollection();
   scene.tiles = makeCollection();
+  scene.walls = makeCollection();
+  const chatMessages = [];
+  const sounds = [];
+  const socketEmits = [];
+  const notifications = [];
   const scenes = new Map([[scene.id, scene]]);
 
   const game = {
     user: users.get("gm1"),
-    users: { get: (id) => users.get(id), activeGM: users.get("gm1") },
+    users: { get: (id) => users.get(id), activeGM: users.get("gm1"), map: (fn) => [...users.values()].map(fn) },
     scenes: { get: (id) => scenes.get(id) },
     journal: { find: (fn) => journals.find(fn) },
-    i18n: { localize: (key) => key },
+    i18n: { localize: (key) => key, format: (key, data) => `${key} ${JSON.stringify(data)}` },
+    socket: { emit: (name, message) => socketEmits.push({ name, message }), on: () => {} },
     settings: { get: () => false }
   };
 
   globalThis.game = game;
-  globalThis.CONST = { DOCUMENT_OWNERSHIP_LEVELS: { NONE: 0 } };
+  globalThis.CONST = {
+    DOCUMENT_OWNERSHIP_LEVELS: { NONE: 0, LIMITED: 1, OBSERVER: 2, OWNER: 3 },
+    WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
+    WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 }
+  };
+  globalThis.ChatMessage = {
+    getWhisperRecipients: () => [users.get("gm1")],
+    create: async (data) => {
+      chatMessages.push(data);
+      return data;
+    }
+  };
+  globalThis.ui = { notifications: { warn: (m) => notifications.push({ level: "warn", m }), info: (m) => notifications.push({ level: "info", m }), error: (m) => notifications.push({ level: "error", m }) } };
   globalThis.foundry = {
+    audio: { AudioHelper: { play: (data, push) => sounds.push({ data, push }) } },
     utils: {
       randomID: () => Math.random().toString(36).slice(2, 10),
       deepClone: (v) => structuredClone(v),
@@ -94,16 +115,30 @@ export function installFoundryMock() {
     hookCalls,
     /** Токен на сцене. owners: id пользователей-владельцев. x, y в пикселях, width и height в клетках. */
     addToken: ({ id, x = 0, y = 0, width = 1, height = 1, owners = [], name = id }) => {
-      const actor = { testUserPermission: (user, level) => level === "OWNER" && owners.includes(user.id) };
+      const actor = { testUserPermission: (user, level) => level === 3 && owners.includes(user.id) };
       scene.tokens.set(id, { id, name, x, y, width, height, actor });
     },
     /** Плитка на сцене. x, y, width, height в пикселях. */
-    addTile: ({ id, x = 0, y = 0, width = 100, height = 100 }) => {
-      scene.tiles.set(id, { id, x, y, width, height });
+    addTile: ({ id, x = 0, y = 0, width = 100, height = 100, hidden = false }) => {
+      scene.tiles.set(id, makeDoc({ id, x, y, width, height, hidden }));
+    },
+    /** Стена на сцене. door: 0 нет, 1 дверь, 2 секретная; ds: состояние двери. */
+    addWall: ({ id, door = 1, ds = 0 }) => {
+      scene.walls.set(id, makeDoc({ id, door, ds }));
+    },
+    /** Сделать пользователя владельцем сцены (для проверки аудита). */
+    setSceneOwner: (userId, on = true) => (on ? sceneOwners.add(userId) : sceneOwners.delete(userId)),
+    chatMessages,
+    sounds,
+    socketEmits,
+    notifications,
+    resetLogs: () => {
+      for (const list of [chatMessages, sounds, socketEmits, notifications]) list.length = 0;
     },
     clearObjects: () => {
       scene.tokens.clear();
       scene.tiles.clear();
+      scene.walls.clear();
     },
     setUser: (id) => {
       game.user = users.get(id);
