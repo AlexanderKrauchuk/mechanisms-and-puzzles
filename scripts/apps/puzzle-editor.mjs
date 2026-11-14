@@ -1,7 +1,8 @@
 import { MODULE_ID, t } from "../constants.mjs";
 import { PuzzleEngine } from "../engine.mjs";
 import { PuzzleStore } from "../storage.mjs";
-import { parseEditorForm, toEditorValues, defaultEditorValues } from "../editor-data.mjs";
+import { parseEditorForm, toEditorValues, defaultEditorValues, previewEditor } from "../editor-data.mjs";
+import { SYMBOL_GROUPS, SYMBOL_PRESETS, presetText, insertSymbol, insertLineBreak } from "../symbols.mjs";
 import { describeLink } from "../proximity.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -29,7 +30,10 @@ export class PuzzleEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       cancel: PuzzleEditor.#onCancel,
       linkToken: PuzzleEditor.#onLinkToken,
       linkTile: PuzzleEditor.#onLinkTile,
-      linkClear: PuzzleEditor.#onLinkClear
+      linkClear: PuzzleEditor.#onLinkClear,
+      insertSymbol: PuzzleEditor.#onInsertSymbol,
+      preset: PuzzleEditor.#onPreset,
+      newRingLine: PuzzleEditor.#onNewRingLine
     }
   };
 
@@ -94,6 +98,15 @@ export class PuzzleEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return {
       ...context,
+      showPalette: type === "sequence" || type === "rings",
+      preview: previewEditor({ ...values, type }),
+      groups: SYMBOL_GROUPS.map((g) => ({ id: g.id, label: t(`editor.symbols.groups.${g.id}`), symbols: g.symbols })),
+      presets: SYMBOL_PRESETS.map((p) => ({
+        id: p.id,
+        label: t(`editor.symbols.presetNames.${p.id}`),
+        count: p.symbols.length,
+        text: presetText(p)
+      })),
       linkLabel: PuzzleEditor.#linkLabel(scene, values.linkKind, values.linkId),
       distanceUnits: scene?.grid?.units || t("editor.access.unitsDefault"),
       interactionModes: [
@@ -119,6 +132,76 @@ export class PuzzleEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         opt("confirm", "editor.rings.checkConfirm", values.rgCheckMode)
       ]
     };
+  }
+
+  #caret = null;
+
+  /** Поле, в которое палитра вставляет символы: символы последовательности или подписи колец. */
+  #symbolField() {
+    const name = this.type === "rings" ? "rgLabels" : "seqSymbols";
+    return this.element.querySelector(`[name="${name}"]`);
+  }
+
+  /** Пересчитывает подсказки под полями (нумерация символов и решение по-человечески). */
+  #updatePreview() {
+    const form = this.element;
+    const values = { ...Object.fromEntries(new FormData(form)), type: this.type };
+    const preview = previewEditor(values);
+    for (const role of ["numbering", "solution"]) {
+      const node = form.querySelector(`[data-role="${role}"]`);
+      if (node) node.textContent = preview[role];
+    }
+  }
+
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    const form = this.element;
+    // Присваивание, а не addEventListener: окно перерисовывается, обработчик не должен копиться.
+    form.oninput = () => this.#updatePreview();
+    const field = this.#symbolField();
+    if (field) {
+      field.onblur = () => {
+        this.#caret = { start: field.selectionStart, end: field.selectionEnd };
+      };
+    }
+  }
+
+  /** Записывает результат вставки в поле, возвращает в него курсор и обновляет подсказки. */
+  #applyEdit(field, { text, caret }) {
+    field.value = text;
+    field.focus();
+    field.setSelectionRange(caret, caret);
+    this.#caret = { start: caret, end: caret };
+    this.#updatePreview();
+  }
+
+  static async #onInsertSymbol(event, target) {
+    const field = this.#symbolField();
+    if (!field) return;
+    const end = field.value.length;
+    const { start = end, end: to = end } = this.#caret ?? {};
+    this.#applyEdit(field, insertSymbol(field.value, start, to, target.dataset.symbol));
+  }
+
+  static async #onNewRingLine() {
+    const field = this.#symbolField();
+    if (!field) return;
+    const end = field.value.length;
+    const { start = end, end: to = end } = this.#caret ?? {};
+    this.#applyEdit(field, insertLineBreak(field.value, start, to));
+  }
+
+  /** Набор заменяет содержимое поля целиком. У колец число секторов подгоняется под набор. */
+  static async #onPreset(event, target) {
+    const preset = SYMBOL_PRESETS.find((p) => p.id === target.dataset.preset);
+    const field = this.#symbolField();
+    if (!preset || !field) return;
+    if (this.type === "rings") {
+      const sectors = this.element.querySelector('[name="rgSectors"]');
+      if (sectors) sectors.value = preset.symbols.length;
+    }
+    this.#applyEdit(field, { text: presetText(preset), caret: presetText(preset).length });
+    ui.notifications.info(t("editor.symbols.presetApplied"));
   }
 
   /** Подпись привязки для формы: «Токен: Имя», «Плитка: id», «не привязана», «объект не найден». */

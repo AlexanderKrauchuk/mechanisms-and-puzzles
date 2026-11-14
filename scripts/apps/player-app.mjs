@@ -17,7 +17,9 @@ const NOTIFY_LEVEL = {
   off: "warn",
   tooFar: "warn",
   noToken: "warn",
-  noObject: "warn"
+  noObject: "warn",
+  otherScene: "warn",
+  tooFast: "warn"
 };
 
 /**

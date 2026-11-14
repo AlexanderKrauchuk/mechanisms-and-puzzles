@@ -5,7 +5,9 @@ import { listPuzzleTypes } from "../puzzles/base.mjs";
 import { describeSolution } from "../editor-data.mjs";
 import { PuzzleWindow } from "./player-app.mjs";
 import { PuzzleEditor } from "./puzzle-editor.mjs";
+import { ActionsEditor } from "./actions-editor.mjs";
 import { describeLink } from "../proximity.mjs";
+import { auditPermissions, collectAuditInput } from "../audit.mjs";
 import { normalizeInteraction } from "../access.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin, DialogV2 } = foundry.applications.api;
@@ -75,6 +77,9 @@ export class GmManager extends HandlebarsApplicationMixin(ApplicationV2) {
       remove: GmManager.#onRemove,
       reveal: GmManager.#onReveal,
       locate: GmManager.#onLocate,
+      actions: GmManager.#onActions,
+      audit: GmManager.#onAudit,
+      testActions: GmManager.#onTestActions,
       nearSolve: GmManager.#onNearSolve,
       refresh: GmManager.#onRefresh
     }
@@ -123,6 +128,7 @@ export class GmManager extends HandlebarsApplicationMixin(ApplicationV2) {
         solved: Boolean(p.solved),
         summary: summarize(p),
         access: accessLine(scene, p),
+        actionsLine: GmManager.#actionsLine(scene, p.id),
         hasLink: Boolean(describeLink(scene, p.link).found),
         canReveal: p.type !== "sliding"
       }));
@@ -136,6 +142,17 @@ export class GmManager extends HandlebarsApplicationMixin(ApplicationV2) {
       createTypes: listPuzzleTypes().map((type) => ({ type, label: t(`types.${type}`) })),
       diagnostics: GmManager.#diagnostics(puzzles.length)
     };
+  }
+
+  /** Сколько действий у загадки: «действия: успех 2, провал 0». */
+  static #actionsLine(scene, id) {
+    try {
+      const a = PuzzleEngine.getActions(scene, id);
+      return game.i18n.format(`${MODULE_ID}.manager.actionsLine`, { success: a.success.length, failure: a.failure.length });
+    } catch (err) {
+      console.error(`${MODULE_ID} |`, err);
+      return "";
+    }
   }
 
   /** Сведения для проверки настройки. Всё считается на клиенте мастера. */
@@ -233,6 +250,49 @@ export class GmManager extends HandlebarsApplicationMixin(ApplicationV2) {
       }
       await canvas.animatePan?.({ x: info.center.x, y: info.center.y });
       canvas.ping?.(info.center);
+    });
+  }
+
+  /** Самопроверка прав: показывает список проверок со статусом. */
+  static async #onAudit() {
+    await this.#run(async () => {
+      const results = auditPermissions(collectAuditInput(canvas.scene));
+      const mark = { ok: "✔", warn: "⚠", fail: "✖" };
+      const rows = results
+        .map((r) => {
+          const names = r.names?.length ? ` (${r.names.map(escapeHtml).join(", ")})` : "";
+          const title = escapeHtml(t(`audit.checks.${r.id}`));
+          const text = escapeHtml(t(`audit.${r.status}.${r.id}`));
+          return `<li class="map-audit-${r.status}"><strong>${mark[r.status]} ${title}</strong>${names}<br><span class="hint">${text}</span></li>`;
+        })
+        .join("");
+      const failed = results.filter((r) => r.status === "fail").length;
+      const warned = results.filter((r) => r.status === "warn").length;
+      const summary = game.i18n.format(`${MODULE_ID}.audit.summary`, { failed, warned });
+      await DialogV2.prompt({
+        window: { title: t("audit.title") },
+        content: `<p>${escapeHtml(summary)}</p><ul class="map-audit">${rows}</ul><p class="hint">${escapeHtml(t("audit.note"))}</p>`,
+        ok: { label: t("manager.close") }
+      });
+    });
+  }
+
+  static async #onActions(event, target) {
+    ActionsEditor.open(target.dataset.id, canvas.scene);
+  }
+
+  /** Пробный запуск действий исхода. Состояние загадки не меняется. */
+  static async #onTestActions(event, target) {
+    await this.#run(async () => {
+      const { id, outcome } = target.dataset;
+      const results = await PuzzleEngine.testActions(canvas.scene, id, outcome);
+      const name = t(`actions.outcome.${outcome}`);
+      if (!results.length) {
+        ui.notifications.info(game.i18n.format(`${MODULE_ID}.manager.testEmpty`, { outcome: name }));
+        return;
+      }
+      const failed = results.filter((r) => !r.ok).length;
+      ui.notifications.info(game.i18n.format(`${MODULE_ID}.manager.testDone`, { outcome: name, ok: results.length - failed, failed }));
     });
   }
 
